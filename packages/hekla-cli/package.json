@@ -1,0 +1,19 @@
+{
+  "name": "hekla-cli",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "hekla": "./bin/hekla"
+  },
+  "author": "Andrew Jensen <andrewjensen90@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "hekla-core": "^0.0.0",
+    "hekla-viewer": "^0.0.0"
+  }
+}

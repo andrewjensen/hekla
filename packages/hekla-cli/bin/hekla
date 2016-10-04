@@ -1,0 +1,22 @@
+#!/usr/bin/env node --harmony
+
+var program = require('commander');
+var pkg = require('../package.json');
+
+var analyze = require('../src/commands/analyze');
+var view = require('../src/commands/view');
+
+program
+  .version(pkg.version, '-v, --version');
+
+program
+  .command('analyze')
+  .description('Analyze a project')
+  .action(() => analyze());
+
+program
+  .command('view')
+  .description('View a hekla dependency graph')
+  .action(() => view());
+
+program.parse(process.argv);
