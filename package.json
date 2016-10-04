@@ -1,0 +1,25 @@
+{
+  "name": "hekla",
+  "version": "0.0.0",
+  "description": "A toolset to make large JS codebases more understandable",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrewjensen/hekla.git"
+  },
+  "keywords": [
+    "analysis"
+  ],
+  "author": "Andrew Jensen <andrewjensen90@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/andrewjensen/hekla/issues"
+  },
+  "homepage": "https://github.com/andrewjensen/hekla#readme",
+  "devDependencies": {
+    "lerna": "2.0.0-beta.15"
+  }
+}
