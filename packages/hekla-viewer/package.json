@@ -1,0 +1,23 @@
+{
+  "name": "hekla-viewer",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "d3-array": "^1.0.1",
+    "d3-drag": "^1.0.1",
+    "d3-force": "^1.0.2",
+    "d3-request": "^1.0.2",
+    "d3-scale": "^1.0.3",
+    "d3-selection": "^1.0.2",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2"
+  },
+  "devDependencies": {
+    "react-scripts": "0.4.3"
+  }
+}

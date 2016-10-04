@@ -1,0 +1,24 @@
+.App {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.App > .header-container {
+  flex: 0;
+}
+
+.App > .content {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+}
+
+.App > .content > .graph-container {
+  flex: 6;
+}
+
+.App > .content > .details-container {
+  flex: 2;
+}

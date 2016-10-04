@@ -1,0 +1,8 @@
+.Details {
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+  padding: 15px;
+  border-left: 1px solid #999;
+  background-color: #ffffff;
+}
