@@ -1,0 +1,19 @@
+{
+  "name": "hekla-core",
+  "version": "0.1.0",
+  "description": "",
+  "main": "src/analyzer/index.js",
+  "scripts": {
+    "start": "node src/analyzer/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andrew Jensen <andrewjensen90@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "babylon": "^6.8.4",
+    "camel-case": "^3.0.0",
+    "glob": "^7.0.5",
+    "htmlparser2": "^3.9.1",
+    "tree-walk": "^0.4.0"
+  }
+}
