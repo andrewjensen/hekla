@@ -1,6 +1,6 @@
 {
   "name": "hekla-core",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "",
   "main": "src/analyzer/index.js",
   "scripts": {
