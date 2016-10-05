@@ -1,11 +1,13 @@
 'use strict';
 
 const fs = require('fs');
+const babylon = require('babylon');
 const walk = require('tree-walk');
 
 module.exports = {
   getFileExists,
   getFileContents,
+  parseAST,
   getNodesByType,
   filterNodes,
   isPromiseCall,
@@ -32,6 +34,17 @@ function getFileContents(filePath) {
       resolve(contents);
     });
   });
+}
+
+function parseAST(fileContents, filePath) {
+  try {
+    const ast = babylon.parse(fileContents, {
+      sourceType: 'module'
+    });
+    return Promise.resolve(ast);
+  } catch (err) {
+    return Promise.reject(err);
+  }
 }
 
 function getNodesByType(tree, nodeType) {

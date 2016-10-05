@@ -1,13 +1,24 @@
 'use strict';
 
 const utils = require('../../utils');
-const htmlParser = require('../../html-parser');
+const htmlParser = require('../../analyzer/html-parser');
+const BaseParser = require('../base-parser');
 
-module.exports = {
-  analyzeAllInFile: analyzeAllInFile
+module.exports = class AngularDirectiveParser extends BaseParser {
+  constructor() {
+    super();
+  }
+
+  extractComponents(module) {
+    return utils.parseAST(module.contents, module.path)
+      .then(ast => analyzeAllInFile(ast, module.path))
+      .catch(err => {
+        console.error(`Error parsing AST for ${module.path}: `, err);
+      });
+  }
 };
 
-function analyzeAllInFile(ast, filePath, rootPath) {
+function analyzeAllInFile(ast, filePath) {
   return Promise.resolve(getDirectiveCallNodes(ast))
     .then(directiveCallNodes => {
       return Promise.all(directiveCallNodes.map(node => getComponentDetails(node, filePath)));
@@ -127,7 +138,7 @@ function getDependencies(templatePath) {
     .then(templateContents => htmlParser.getDependencies(templateContents, templatePath))
     .catch(err => {
       if (err.code === 'ENOENT') {
-        console.log('does not exist, bro');
+        console.log('    template does not exist, bro');
         return [];
       } else {
         return Promise.reject(err);
