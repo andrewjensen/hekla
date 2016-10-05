@@ -1,5 +1,6 @@
 'use strict';
 
+const dashify = require('dashify');
 const utils = require('../../utils');
 const htmlParser = require('../../analyzer/html-parser');
 const BaseParser = require('../base-parser');
@@ -54,8 +55,10 @@ function getComponentDetails(node, module) {
   const templatePath = filePath.replace('.js', '.html');
   return getDependencies(templatePath)
     .then(dependencies => {
+      const componentName = getName(node);
       return {
-        name: getName(node),
+        name: componentName,
+        altNames: [dashify(componentName)],
         type: 'angular-directive',
         path: filePath,
         templatePath: getTemplate(node),  // TODO: reuse?
