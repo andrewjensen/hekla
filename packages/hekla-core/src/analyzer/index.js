@@ -4,6 +4,9 @@ const BaseLoader = require('../loaders/base-loader');
 const BaseParser = require('../parsers/base-parser');
 
 const ParserEngine = require('./parser-engine');
+const utils = require('../utils');
+
+const DEBUG = false;
 
 module.exports = class Analyzer {
   constructor(config) {
@@ -21,13 +24,14 @@ module.exports = class Analyzer {
     return Promise.resolve()
       .then(() => Analyzer.loadModules(this.config.loader))
       .then(modules => Analyzer.extractComponents(modules, this.config.parsers))
-      .then(modules => Analyzer.buildDependencyGraph(modules))
-      .then(dependencyGraph => Analyzer.export(dependencyGraph))
+      .then(results => Analyzer.buildDependencyGraph(results.components))
+      .then(dependencyGraph => Analyzer.export(dependencyGraph, this.config.output))
       .then(() => {
         console.log('Done.');
       })
       .catch(err => {
         console.error('Error while analyzing: ', err.stack);
+        return Promise.reject(err);
       });
   }
 
@@ -52,39 +56,35 @@ module.exports = class Analyzer {
         console.log(`    Extracted ${results.components.length} components`);
         console.log(`    Caught ${results.errors.length} errors`);
         console.log('');
-        console.log('    Components found:');
-        results.components.forEach(component => console.log(`      ${component.name}`));
-        console.log('    Errors:');
-        results.errors.forEach(error => console.log(`      ${error.message}`));
-        console.log('');
+        if (DEBUG) {
+          console.log('    Components found:');
+          results.components.forEach(component => console.log(`      ${component.name}`));
+          console.log('    Errors:');
+          results.errors.forEach(error => console.log(`      ${error.message}`));
+          console.log('');
+        }
 
         return results;
       });
   }
 
-// .then(results => {
-//   console.log('Finished!');
-//   console.log('\ttotal components:', results.components.length);
-//   console.log('\ttotal errors:', results.errors.length);
-//   console.log(results.errors.map(error => error.message).join('\n'));
-//   return results;
-// })
-// .catch(err => {
-//   console.error('Uncaught error during analysis:', err.stack);
-// });
-
-
-
-
-  static buildDependencyGraph(modules) {
-    console.log('  building dependency graph...');
-    console.log('');
-    return Promise.resolve();
+  static buildDependencyGraph(components) {
+    console.log('  Building dependency graph...');
+    return ParserEngine.buildDependencyGraph(components)
+      .then(dependencyGraph => {
+        console.log(`    Created ${dependencyGraph.links.length} links.`);
+        console.log('');
+        return dependencyGraph;
+      });
   }
 
-  static export(dependencyGraph) {
-    console.log('  exporting...');
-    console.log('');
+  static export(dependencyGraph, outputFilename) {
+    console.log('  Exporting...');
+    return utils.writeJSON(dependencyGraph, outputFilename)
+      .then(() => {
+        console.log(`    Saved to ${outputFilename}`);
+        console.log('');
+      });
     return Promise.resolve();
   }
 
@@ -92,6 +92,8 @@ module.exports = class Analyzer {
     if (!config.loader || !(config.loader instanceof BaseLoader)) {
       return false;
     } else if (!config.parsers) {
+      return false;
+    } else if (!config.output) {
       return false;
     }
 

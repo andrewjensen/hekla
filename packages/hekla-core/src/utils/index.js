@@ -7,6 +7,7 @@ const walk = require('tree-walk');
 module.exports = {
   getFileExists,
   getFileContents,
+  writeJSON,
   parseAST,
   getNodesByType,
   filterNodes,
@@ -34,6 +35,16 @@ function getFileContents(filePath) {
       resolve(contents);
     });
   });
+}
+
+function writeJSON(data, filePath) {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(filePath, JSON.stringify(data, null, 2), err => {
+      if (err) return reject(err);
+
+      resolve();
+    });
+  })
 }
 
 function parseAST(fileContents, filePath) {

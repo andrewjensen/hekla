@@ -2,7 +2,8 @@
 const utils = require('../../utils');
 
 module.exports = {
-  parse
+  parse,
+  buildDependencyGraph
 };
 
 /**
@@ -17,6 +18,15 @@ function parse(modules, parsers) {
       // console.log('    Results:', mergedResults);
       return mergedResults
     });
+}
+
+function buildDependencyGraph(components) {
+  // TODO: implement
+  const dependencyGraph = {
+    nodes: components,
+    links: []
+  };
+  return Promise.resolve(dependencyGraph);
 }
 
 /**

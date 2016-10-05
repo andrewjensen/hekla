@@ -11,17 +11,21 @@ module.exports = class AngularDirectiveParser extends BaseParser {
 
   extractComponents(module) {
     return utils.parseAST(module.contents, module.path)
-      .then(ast => analyzeAllInFile(ast, module.path))
+      .then(ast => analyzeAllInFile(ast, module))
       .catch(err => {
         console.error(`Error parsing AST for ${module.path}: `, err);
+        return {
+          components: [],
+          errors: [err]
+        };
       });
   }
 };
 
-function analyzeAllInFile(ast, filePath) {
+function analyzeAllInFile(ast, module) {
   return Promise.resolve(getDirectiveCallNodes(ast))
     .then(directiveCallNodes => {
-      return Promise.all(directiveCallNodes.map(node => getComponentDetails(node, filePath)));
+      return Promise.all(directiveCallNodes.map(node => getComponentDetails(node, module)));
     })
     .then(components => {
       return {
@@ -44,18 +48,22 @@ function getDirectiveCallNodes(ast) {
     });
 }
 
-function getComponentDetails(node, filePath) {
+function getComponentDetails(node, module) {
+  const filePath = module.path;
   // TODO: it's 1:30am and I'm getting sloppy - clean up this whole flow
   const templatePath = filePath.replace('.js', '.html');
   return getDependencies(templatePath)
     .then(dependencies => {
       return {
+        id: module.id,
+        name: getName(node),
         type: 'angular-directive',
         path: filePath,
-        name: getName(node),
-        module: getModuleName(node),
-        scope: getScope(node, filePath),
         templatePath: getTemplate(node),  // TODO: reuse?
+        properties: {
+          angularModule: getModuleName(node),
+          scope: getScope(node, filePath)
+        },
         dependencies: dependencies
       };
     });
@@ -138,7 +146,7 @@ function getDependencies(templatePath) {
     .then(templateContents => htmlParser.getDependencies(templateContents, templatePath))
     .catch(err => {
       if (err.code === 'ENOENT') {
-        console.log('    template does not exist, bro');
+        // console.log('    template does not exist, bro');
         return [];
       } else {
         return Promise.reject(err);
