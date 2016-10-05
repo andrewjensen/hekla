@@ -52,16 +52,9 @@ function filterFiles(files, filterFn) {
 }
 
 function expandModules(files, rootPath) {
-  let id = 1;
-  const modules = [];
-
-  files.forEach(file => {
-    modules.push({
-      path: file,
-      id: id
-    });
-    id++;
-  });
+  const modules = files.map(file => ({
+    path: file
+  }));
 
   return Promise.all(modules.map(module => getModuleSource(module, rootPath)))
 }

@@ -13,7 +13,7 @@ module.exports = class AngularDirectiveParser extends BaseParser {
     return utils.parseAST(module.contents, module.path)
       .then(ast => analyzeAllInFile(ast, module))
       .catch(err => {
-        console.error(`Error parsing AST for ${module.path}: `, err);
+        console.error(`Error parsing AST for ${module.path}: `, err.stack);
         return {
           components: [],
           errors: [err]
@@ -55,7 +55,6 @@ function getComponentDetails(node, module) {
   return getDependencies(templatePath)
     .then(dependencies => {
       return {
-        id: module.id,
         name: getName(node),
         type: 'angular-directive',
         path: filePath,

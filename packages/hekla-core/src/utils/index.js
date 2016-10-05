@@ -48,6 +48,10 @@ function writeJSON(data, filePath) {
 }
 
 function parseAST(fileContents, filePath) {
+  if (!fileContents) {
+    return Promise.reject(new Error('no file contents to parse'));
+  }
+
   try {
     const ast = babylon.parse(fileContents, {
       sourceType: 'module'
