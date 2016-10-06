@@ -26,6 +26,7 @@ describe('AngularDirectiveParser', () => {
   let inlineConcatModule;
   let inlineArrayJoinModule;
   let templateUrlModule;
+  let templateUrlFnModule;
 
   before(() => {
     basicModule = makeModule(path.resolve(__dirname, './test-examples/basic.js'));
@@ -33,6 +34,7 @@ describe('AngularDirectiveParser', () => {
     inlineConcatModule = makeModule(path.resolve(__dirname, './test-examples/inline-concat.js'));
     inlineArrayJoinModule = makeModule(path.resolve(__dirname, './test-examples/inline-array-join.js'));
     templateUrlModule = makeModule(path.resolve(__dirname, './test-examples/template-url.js'));
+    templateUrlFnModule = makeModule(path.resolve(__dirname, './test-examples/template-url-function.js'));
   });
 
   describe('extractComponents', () => {
@@ -121,6 +123,17 @@ describe('AngularDirectiveParser', () => {
           expect(component.dependencies).to.deep.equal([
             'my-pet-title'
           ]);
+          done();
+        })
+        .catch(err => done(err));
+    });
+
+    it('should gracefully fail with an evaluated templateUrl', (done) => {
+      const parser = new AngularDirectiveParser();
+      parser.extractComponents(templateUrlFnModule)
+        .then(getComponentFromResults)
+        .then(component => {
+          expect(component.dependencies).to.deep.equal([]);
           done();
         })
         .catch(err => done(err));

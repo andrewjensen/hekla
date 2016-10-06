@@ -164,7 +164,8 @@ function getTemplateInfo(directiveDefinitionObject, filePath) {
       path: null,
       contents: reduceComplexTemplate(templateProperty)
     });
-  } else if (templateUrlProperty) {
+  } else if (templateUrlProperty && templateUrlProperty.type === 'StringLiteral') {
+    // templateUrl string
     return resolveTemplatePath(templateUrlProperty.value, filePath)
       .then(templatePath => {
         if (templatePath) {
@@ -182,6 +183,13 @@ function getTemplateInfo(directiveDefinitionObject, filePath) {
           });
         }
       });
+  } else if (templateUrlProperty) {
+    // Weird templateUrl - can't parse
+    return Promise.resolve({
+      type: 'external',
+      path: null,
+      contents: ''
+    });
   } else {
     // No template or templateUrl
     return Promise.resolve(null);
