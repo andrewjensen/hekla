@@ -1,10 +1,9 @@
 'use strict';
 
 const htmlparser = require('htmlparser2');
-const camelCase = require('camel-case');
 
 module.exports = {
-  getDependencies: getDependencies
+  getDependencies
 };
 
 function getDependencies(fileContents, filePath) {
@@ -48,7 +47,6 @@ function getDmComponentName(attrValue, filePath) {
 function cleanDependencyList(dependencies) {
   const uniqueDependencies = uniq(dependencies);
   return uniqueDependencies
-    .map(depName => camelCase(depName))
     .sort();
 }
 

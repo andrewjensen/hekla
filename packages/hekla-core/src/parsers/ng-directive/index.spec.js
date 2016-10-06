@@ -50,11 +50,24 @@ describe('AngularDirectiveParser', () => {
         .catch(err => done(err));
     });
 
-    it('should extract a directive with a different template name');
+    it('should extract a directive with required template file', (done) => {
+      const parser = new AngularDirectiveParser();
+      parser.extractComponents(basicModule)
+        .then(results => {
+          expect(results.components.length).to.equal(1);
+          expect(results.errors.length).to.equal(0);
+          return results.components[0];
+        })
+        .then(component => {
+          expect(component.dependencies).to.deep.equal([
+            'my-pet-title'
+          ]);
+          done();
+        })
+        .catch(err => done(err));
+    });
 
-    it('should extract a directive with quoted scope properties');
-
-    xit('should extract a directive with a simple inline template', (done) => {
+    it('should extract a directive with a simple inline template', (done) => {
       const parser = new AngularDirectiveParser();
       parser.extractComponents(inlineTemplateModule)
         .then(results => {

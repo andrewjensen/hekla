@@ -1,5 +1,6 @@
 'use strict';
 
+const path = require('path');
 const dashify = require('dashify');
 const utils = require('../../utils');
 const htmlParser = require('../../analyzer/html-parser');
@@ -135,20 +136,38 @@ function getScopeParam(propertyObject) {
 }
 
 function getTemplateInfo(directiveDefinitionObject, filePath) {
-  const templatePath = filePath.replace('.js', '.html');
-
   const templateProperty = getDefinitionProperty('template', directiveDefinitionObject);
   const templateUrlProperty = getDefinitionProperty('templateUrl', directiveDefinitionObject);
+
+  if (templateProperty && templateProperty.type === 'StringLiteral') {
+    return Promise.resolve({
+      type: 'inline',
+      path: null,
+      contents: templateProperty.value
+    });
+  } else if (templateProperty && templateProperty.type === 'CallExpression' && templateProperty.callee.name === 'require') {
+    const requiredPath = templateProperty.arguments[0].value;
+    const templatePath = path.resolve(filePath, '..', requiredPath);
+    return getExternalTemplateContents(templatePath)
+      .then(contents => {
+        return {
+          type: 'external',
+          path: templatePath,
+          contents
+        };
+      });
+  } else {
+    const templatePath = filePath.replace('.js', '.html');
+    return Promise.resolve({
+      type: 'external',
+      path: templatePath,
+      contents: ''
+    });
+  }
 
   // TODO: resolve require()
   // TODO: handle `template` strings
   // TODO: handle `templateUrl`
-
-  return Promise.resolve({
-    type: 'inline',
-    path: templatePath,
-    contents: ''
-  });
 }
 
 function getInlineTemplateContents() {
@@ -156,8 +175,7 @@ function getInlineTemplateContents() {
   return Promise.resolve('');
 }
 
-function getExternalTemplateContents() {
-  // TODO: implement
+function getExternalTemplateContents(templatePath) {
   return utils.getFileContents(templatePath)
 }
 
