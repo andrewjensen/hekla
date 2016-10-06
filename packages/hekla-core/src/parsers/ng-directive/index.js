@@ -67,7 +67,6 @@ function getDefinitionProperty(propertyName, directiveDefinitionObject) {
 }
 
 function getComponentDetails(node, module) {
-  // TODO: refactor helper functions to use the definition object
   const directiveDefinitionObject = getDirectiveDefinitionObject(node);
   const filePath = module.path;
 
@@ -139,13 +138,8 @@ function getTemplateInfo(directiveDefinitionObject, filePath) {
   const templateProperty = getDefinitionProperty('template', directiveDefinitionObject);
   const templateUrlProperty = getDefinitionProperty('templateUrl', directiveDefinitionObject);
 
-  if (templateProperty && templateProperty.type === 'StringLiteral') {
-    return Promise.resolve({
-      type: 'inline',
-      path: null,
-      contents: templateProperty.value
-    });
-  } else if (templateProperty && templateProperty.type === 'CallExpression' && templateProperty.callee.name === 'require') {
+  if (templateProperty && templateProperty.type === 'CallExpression' && templateProperty.callee.name === 'require') {
+    // Required template file
     const requiredPath = templateProperty.arguments[0].value;
     const templatePath = path.resolve(filePath, '..', requiredPath);
     return getExternalTemplateContents(templatePath)
@@ -156,23 +150,51 @@ function getTemplateInfo(directiveDefinitionObject, filePath) {
           contents
         };
       });
-  } else {
-    const templatePath = filePath.replace('.js', '.html');
+  } else if (templateProperty && templateProperty.type === 'StringLiteral') {
+    // Simple inline template
     return Promise.resolve({
-      type: 'external',
-      path: templatePath,
-      contents: ''
+      type: 'inline',
+      path: null,
+      contents: templateProperty.value
     });
+  } else if (templateProperty) {
+    // Complex inline template
+    return Promise.resolve({
+      type: 'inline',
+      path: null,
+      contents: reduceComplexTemplate(templateProperty)
+    });
+  } else if (templateUrlProperty) {
+    // TODO: handle `templateUrl`
+    throw new Error('unhandled template type');
+  } else {
+    // No template or templateUrl
+    return Promise.resolve(null);
   }
-
-  // TODO: resolve require()
-  // TODO: handle `template` strings
-  // TODO: handle `templateUrl`
 }
 
-function getInlineTemplateContents() {
-  // TODO: implement
-  return Promise.resolve('');
+function reduceComplexTemplate(templateProperty) {
+  if (templateProperty.type === 'BinaryExpression') {
+    return reduceConcatenatedTemplate(templateProperty);
+  } else if (templateProperty.type === 'CallExpression') {
+    return reduceArrayJoinTemplate(templateProperty);
+    return '';
+  } else {
+    throw new Error('invalid complex template');
+  }
+}
+
+function reduceConcatenatedTemplate(binaryExpression) {
+  const leftSide = (binaryExpression.left.type === 'BinaryExpression' ? reduceConcatenatedTemplate(binaryExpression.left) : binaryExpression.left.value);
+  const rightSide = binaryExpression.right.value;
+  return leftSide + rightSide;
+}
+
+function reduceArrayJoinTemplate(joinCallExpression) {
+  const templateArray = joinCallExpression.callee.object;
+  const pieces = templateArray.elements.map(element => element.value);
+  const delimiter = joinCallExpression.arguments[0].value;
+  return pieces.join(delimiter);
 }
 
 function getExternalTemplateContents(templatePath) {
@@ -196,7 +218,7 @@ function getTemplateUrl(directiveCallNode) {
 }
 
 function getDependencies(templateInfo) {
-  console.log('getting dependencies:', templateInfo);
+  // console.log('getting dependencies:', templateInfo);
   return Promise.resolve()
     .then(() => htmlParser.getDependencies(templateInfo.contents, templateInfo.path))
     .catch(err => {
