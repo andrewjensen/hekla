@@ -41,7 +41,8 @@ describe('AngularDirectiveParser', () => {
             scope: [
               'title',
               'dogs',
-              'cats'
+              'cats',
+              'quoted'
             ]
           });
           done();

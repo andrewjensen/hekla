@@ -3,7 +3,8 @@ angular.module('app').directive('myPetShop', function() {
     scope: {
       title: '@',
       dogs: '=',
-      cats: '='
+      cats: '=',
+      'quoted': '='
     },
     template: require('./basic.html'),
     link: function (scope, el, attrs) {

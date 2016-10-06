@@ -87,7 +87,7 @@ function getComponentDetails(node, module) {
         templatePath: templateInfo.path,
         properties: {
           angularModule: getModuleName(node),
-          scope: getScope(node, filePath)
+          scope: getScope(directiveDefinitionObject)
         },
         dependencies: dependencies
       };
@@ -115,26 +115,23 @@ function getModuleName(directiveCallNode) {
   }
 }
 
-function getScope(directiveCallNode, filePath) {
-  const scopeNodes = utils.getNodesByType(directiveCallNode, 'ObjectProperty')
-    .filter(node => (node.key && node.key.name && node.key.name === 'scope'));
+function getScope(directiveDefinitionObject) {
+  const scopeNode = getDefinitionProperty('scope', directiveDefinitionObject);
 
-  if (scopeNodes.length === 0) {
-    return null;
-  } else if (scopeNodes.length > 1) {
-    // TODO: this can happen with chained module.directive().directive() calls
-    throw new Error('Parser bug: multiple scope declarations found', scopeNodes);
-  }
-
-  const scopeNode = scopeNodes[0];
-  if (scopeNode.value.properties) {
-    return scopeNode.value.properties
-      .map(property => property.key.name);
-  } else if (scopeNode.value.type === 'BooleanLiteral') {
-    return scopeNode.value.value;
+  if (scopeNode.properties) {
+    return scopeNode.properties
+      .map(property => getScopeParam(property));
+  } else if (scopeNode.type === 'BooleanLiteral') {
+    return scopeNode.value;
   } else {
     throw new error('Parser bug while parsing scope value');
   }
+}
+
+function getScopeParam(propertyObject) {
+  if (propertyObject.key.type === 'Identifier') return propertyObject.key.name;
+  else if (propertyObject.key.type === 'StringLiteral') return propertyObject.key.value;
+  else throw new Error('invalid node type for scope parameter: ' + propertyObject.key.type);
 }
 
 function getTemplateInfo(directiveDefinitionObject, filePath) {
