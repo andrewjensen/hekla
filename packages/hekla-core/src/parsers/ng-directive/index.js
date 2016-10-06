@@ -49,11 +49,34 @@ function getDirectiveCallNodes(ast) {
     });
 }
 
+function getDirectiveDefinitionObject(directiveCallNode) {
+  const definitionFunction = directiveCallNode.arguments[1];
+
+  const returnStatement = definitionFunction.body.body
+    .reduce((previous, statement) => (statement.type === 'ReturnStatement' ? statement : previous), null);
+
+  const definitionObject = returnStatement.argument;
+
+  return definitionObject;
+}
+
+function getDefinitionProperty(propertyName, directiveDefinitionObject) {
+  return directiveDefinitionObject.properties
+    .reduce((prev, property) => (property.key.type === 'Identifier' && property.key.name === propertyName ? property.value : prev), null);
+}
+
 function getComponentDetails(node, module) {
+  // TODO: refactor helper functions to use the definition object
+  const directiveDefinitionObject = getDirectiveDefinitionObject(node);
   const filePath = module.path;
-  // TODO: it's 1:30am and I'm getting sloppy - clean up this whole flow
-  const templatePath = filePath.replace('.js', '.html');
-  return getDependencies(templatePath)
+
+  let templateInfo = {};
+  return getTemplateInfo(directiveDefinitionObject, filePath)
+    .then(info => {
+      templateInfo = info;
+      return info;
+    })
+    .then(info => getDependencies(info))
     .then(dependencies => {
       const componentName = getName(node);
       return {
@@ -61,7 +84,7 @@ function getComponentDetails(node, module) {
         altNames: [dashify(componentName)],
         type: 'angular-directive',
         path: filePath,
-        templatePath: getTemplate(node),  // TODO: reuse?
+        templatePath: templateInfo.path,
         properties: {
           angularModule: getModuleName(node),
           scope: getScope(node, filePath)
@@ -114,17 +137,31 @@ function getScope(directiveCallNode, filePath) {
   }
 }
 
-function getTemplate(directiveCallNode) {
-  const templateUrl = getTemplateUrl(directiveCallNode);
+function getTemplateInfo(directiveDefinitionObject, filePath) {
+  const templatePath = filePath.replace('.js', '.html');
 
-  // TODO: handle `template` as well as `templateUrl`
+  const templateProperty = getDefinitionProperty('template', directiveDefinitionObject);
+  const templateUrlProperty = getDefinitionProperty('templateUrl', directiveDefinitionObject);
 
-  // TODO: get HTML and parse it
+  // TODO: resolve require()
+  // TODO: handle `template` strings
+  // TODO: handle `templateUrl`
 
-  // TODO: get component dependencies out of the HTML
+  return Promise.resolve({
+    type: 'inline',
+    path: templatePath,
+    contents: ''
+  });
+}
 
-  // console.log('template:', templateUrl);
-  return templateUrl;
+function getInlineTemplateContents() {
+  // TODO: implement
+  return Promise.resolve('');
+}
+
+function getExternalTemplateContents() {
+  // TODO: implement
+  return utils.getFileContents(templatePath)
 }
 
 function getTemplateUrl(directiveCallNode) {
@@ -143,10 +180,12 @@ function getTemplateUrl(directiveCallNode) {
   }
 }
 
-function getDependencies(templatePath) {
-  return utils.getFileContents(templatePath)
-    .then(templateContents => htmlParser.getDependencies(templateContents, templatePath))
+function getDependencies(templateInfo) {
+  console.log('getting dependencies:', templateInfo);
+  return Promise.resolve()
+    .then(() => htmlParser.getDependencies(templateInfo.contents, templateInfo.path))
     .catch(err => {
+      console.log('caught an error!', err);
       if (err.code === 'ENOENT') {
         // console.log('    template does not exist, bro');
         return [];
@@ -155,9 +194,6 @@ function getDependencies(templatePath) {
       }
     });
 }
-
-
-
 
 function debugNode(node) {
   // TODO: remove this function
