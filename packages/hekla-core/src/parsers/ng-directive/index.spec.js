@@ -11,6 +11,10 @@ function makeModule(path) {
 }
 
 function getComponentFromResults(results) {
+  if (results.errors.length > 0) {
+    console.error('Error while extracting components:');
+    console.error(results.errors[0].stack);
+  }
   expect(results.components.length).to.equal(1);
   expect(results.errors.length).to.equal(0);
   return results.components[0];
@@ -21,12 +25,14 @@ describe('AngularDirectiveParser', () => {
   let inlineModule;
   let inlineConcatModule;
   let inlineArrayJoinModule;
+  let templateUrlModule;
 
   before(() => {
     basicModule = makeModule(path.resolve(__dirname, './test-examples/basic.js'));
     inlineModule = makeModule(path.resolve(__dirname, './test-examples/inline.js'));
     inlineConcatModule = makeModule(path.resolve(__dirname, './test-examples/inline-concat.js'));
     inlineArrayJoinModule = makeModule(path.resolve(__dirname, './test-examples/inline-array-join.js'));
+    templateUrlModule = makeModule(path.resolve(__dirname, './test-examples/template-url.js'));
   });
 
   describe('extractComponents', () => {
@@ -107,7 +113,18 @@ describe('AngularDirectiveParser', () => {
         .catch(err => done(err));
     });
 
-    it('should extract a directive with a templateUrl');
+    it('should extract a directive with a templateUrl', (done) => {
+      const parser = new AngularDirectiveParser();
+      parser.extractComponents(templateUrlModule)
+        .then(getComponentFromResults)
+        .then(component => {
+          expect(component.dependencies).to.deep.equal([
+            'my-pet-title'
+          ]);
+          done();
+        })
+        .catch(err => done(err));
+    });
 
   });
 

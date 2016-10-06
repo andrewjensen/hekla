@@ -165,8 +165,23 @@ function getTemplateInfo(directiveDefinitionObject, filePath) {
       contents: reduceComplexTemplate(templateProperty)
     });
   } else if (templateUrlProperty) {
-    // TODO: handle `templateUrl`
-    throw new Error('unhandled template type');
+    return resolveTemplatePath(templateUrlProperty.value, filePath)
+      .then(templatePath => {
+        if (templatePath) {
+          return getExternalTemplateContents(templatePath)
+            .then(contents => ({
+              type: 'external',
+              path: templatePath,
+              contents
+            }));
+        } else {
+          return Promise.resolve({
+            type: 'external',
+            path: null,
+            contents: ''
+          });
+        }
+      });
   } else {
     // No template or templateUrl
     return Promise.resolve(null);
@@ -197,24 +212,44 @@ function reduceArrayJoinTemplate(joinCallExpression) {
   return pieces.join(delimiter);
 }
 
-function getExternalTemplateContents(templatePath) {
-  return utils.getFileContents(templatePath)
+/**
+ * Attempt to convert a templateUrl into an absolute path
+ */
+function resolveTemplatePath(templateUrl, componentPath) {
+  const componentFilename = getFileName(componentPath);
+  const templateFilename = getFileName(templateUrl);
+
+  if (getDirectoryName(templateUrl) === getDirectoryName(componentPath)) {
+    const templatePath = componentPath.replace(componentFilename, templateFilename);
+    return utils.getFileExists(templatePath)
+      .then(fileExists => {
+        if (fileExists) {
+          // The template is in the same directory as the component.
+          return templatePath;
+        } else {
+          // TODO: the file is missing so the naive replace didn't work...
+          return null;
+        }
+      });
+  } else {
+    // The template is in a different directory...
+    // TODO: do tricky stuff here to reconcile the path and url.
+    return Promise.resolve(null);
+  }
 }
 
-function getTemplateUrl(directiveCallNode) {
-  const templateUrlNodes = utils.getNodesByType(directiveCallNode, 'ObjectProperty')
-    .filter(node => (node.key && node.key.name === 'templateUrl'));
+function getDirectoryName(path) {
+  const pieces = path.split('/');
+  return pieces[pieces.length - 2];
+}
 
-  if (templateUrlNodes.length === 0) {
-    return null;
-  }
+function getFileName(path) {
+  const pieces = path.split('/');
+  return pieces[pieces.length - 1];
+}
 
-  const templateUrlNode = templateUrlNodes[0];
-  if (templateUrlNode.value.type === 'StringLiteral') {
-    return templateUrlNode.value.value;
-  } else {
-    throw new Error('Unrecognized directive templateUrl:', templateUrlNode);
-  }
+function getExternalTemplateContents(templatePath) {
+  return utils.getFileContents(templatePath)
 }
 
 function getDependencies(templateInfo) {
