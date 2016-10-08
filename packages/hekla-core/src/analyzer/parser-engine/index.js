@@ -1,5 +1,7 @@
+'use strict';
 
 const utils = require('../../utils');
+const DependencyGraph = require('../../utils/dependency-graph');
 
 module.exports = {
   parse,
@@ -21,13 +23,46 @@ function parse(modules, parsers) {
 }
 
 function buildDependencyGraph(components) {
-  // TODO: implement
-  const dependencyGraph = {
-    nodes: components,
-    links: []
-  };
+  // Create unique IDs for components
+  addIdNumbers(components);
+
+  // Build data structures for quickly finding components
+  const dependencyGraph = new DependencyGraph();
+  const componentsByName = new Map();
+  components.forEach(component => {
+    dependencyGraph.addNode(component.id, component);
+    if (componentsByName.has(component.name)) {
+      throw new Error('duplicate components found:', component.name);
+    }
+    componentsByName.set(component.name, component);
+    component.altNames.forEach(altName => {
+      if (componentsByName.has(altName)) {
+        throw new Error('duplicate components found:', altName);
+      }
+      componentsByName
+    });
+  });
+
+  const unknownDependencies = [];
+
+  // Create links from each component's parents to the component
+  components.forEach(component => {
+    component.dependencies.forEach(dependencyName => {
+      if (componentsByName.has(dependencyName)) {
+        const dependency = componentsByName.get(dependencyName);
+        dependencyGraph.addLink(dependency.id, component.id);
+      } else {
+        unknownDependencies.push(dependencyName);
+      }
+    });
+  });
+
+
+
   return Promise.resolve(dependencyGraph);
 }
+
+// -----------------------------------------------
 
 /**
  * Parse a single module to extract components from it.
@@ -91,4 +126,13 @@ function mergeAnalysisResults(analysisResultArray) {
 
 function mergeArrays(arrays) {
   return [].concat.apply([], arrays);
+}
+
+function addIdNumbers(components) {
+  let id = 1;
+  components.forEach(component => {
+    component.id = id;
+    id++;
+  });
+  return components;
 }

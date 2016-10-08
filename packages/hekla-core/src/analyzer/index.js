@@ -59,6 +59,7 @@ module.exports = class Analyzer {
         if (DEBUG) {
           console.log('    Components found:');
           results.components.forEach(component => console.log(`      ${component.name}`));
+          console.log('');
           console.log('    Errors:');
           results.errors.forEach(error => console.log(`      ${error.message}`));
           console.log('');
@@ -80,7 +81,11 @@ module.exports = class Analyzer {
 
   static export(dependencyGraph, outputFilename) {
     console.log('  Exporting...');
-    return utils.writeJSON(dependencyGraph, outputFilename)
+    const exportable = {
+      components: dependencyGraph.nodes.map(node => node.value),
+      componentDependencies: dependencyGraph.links
+    };
+    return utils.writeJSON(exportable, outputFilename)
       .then(() => {
         console.log(`    Saved to ${outputFilename}`);
         console.log('');
