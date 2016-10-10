@@ -15,8 +15,8 @@ function getComponentFromResults(results) {
     console.error('Error while extracting components:');
     console.error(results.errors[0].stack);
   }
-  expect(results.components.length).to.equal(1);
-  expect(results.errors.length).to.equal(0);
+  expect(results.components).have.length(1);
+  expect(results.errors).to.have.length(0);
   return results.components[0];
 }
 

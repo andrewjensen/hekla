@@ -1,6 +1,7 @@
 'use strict';
 
 const utils = require('../../utils');
+const ParserResult = require('../../utils/parser-result');
 const DependencyGraph = require('../../utils/dependency-graph');
 
 module.exports = {
@@ -11,7 +12,7 @@ module.exports = {
 /**
  * Parse all modules to extract components from each of them.
  *
- * @return {Promise<AnalysisResult>}
+ * @return {Promise<ParserResult>}
  */
 function parse(modules, parsers) {
   return Promise.all(modules.map(module => parseModule(module, parsers)))
@@ -67,7 +68,7 @@ function buildDependencyGraph(components) {
 /**
  * Parse a single module to extract components from it.
  *
- * @return {Promise<AnalysisResult>}
+ * @return {Promise<ParserResult>}
  */
 function parseModule(module, parsers) {
   // console.log(`    Parsing ${module.path} with ${parsers.length} parsers...`);
@@ -79,7 +80,7 @@ function parseModule(module, parsers) {
 }
 
 /**
- * @return {Promise<AnalysisResult>}
+ * @return {Promise<ParserResult>}
  */
 function analyzeFiles(files, rootPath) {
   return Promise.all(files.map(file => analyzeFile(file, rootPath)))
@@ -87,7 +88,7 @@ function analyzeFiles(files, rootPath) {
 }
 
 /**
- * @return {Promise<AnalysisResult>}
+ * @return {Promise<ParserResult>}
  */
 function analyzeFile(file, rootPath) {
   // console.log('analyzeFile', file);
@@ -118,14 +119,7 @@ function analyzeFile(file, rootPath) {
 }
 
 function mergeAnalysisResults(analysisResultArray) {
-  return {
-    components: mergeArrays(analysisResultArray.map(result => result.components)),
-    errors: mergeArrays(analysisResultArray.map(result => result.errors))
-  };
-}
-
-function mergeArrays(arrays) {
-  return [].concat.apply([], arrays);
+  return ParserResult.mergeAll(analysisResultArray);
 }
 
 function addIdNumbers(components) {

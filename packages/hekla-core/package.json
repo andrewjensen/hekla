@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "mocha src/**/*.spec.js --require ./test/test-helpers.js --reporter dot",
-    "tdd": "mocha src/**/*.spec.js --require ./test/test-helpers.js --reporter dot --watch"
+    "tdd": "mocha src/**/*.spec.js --require ./test/test-helpers.js --reporter min --watch"
   },
   "author": "Andrew Jensen <andrewjensen90@gmail.com>",
   "license": "MIT",

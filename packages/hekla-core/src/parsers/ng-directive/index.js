@@ -5,6 +5,7 @@ const dashify = require('dashify');
 const utils = require('../../utils');
 const htmlParser = require('../../analyzer/html-parser');
 const BaseParser = require('../base-parser');
+const ParserResult = require('../../utils/parser-result');
 
 module.exports = class AngularDirectiveParser extends BaseParser {
   constructor() {
@@ -16,10 +17,7 @@ module.exports = class AngularDirectiveParser extends BaseParser {
       .then(ast => analyzeAllInFile(ast, module))
       .catch(err => {
         console.error(`Error parsing AST for ${module.path}: `, err.stack);
-        return {
-          components: [],
-          errors: [err]
-        };
+        return ParserResult.create([], err, module);
       });
   }
 };
@@ -30,16 +28,15 @@ function analyzeAllInFile(ast, module) {
       return Promise.all(directiveCallNodes.map(node => getComponentDetails(node, module)));
     })
     .then(components => {
-      return {
-        components: components,
-        errors: []
-      };
+      return ParserResult.create(components);
     })
     .catch(err => {
-      return {
-        components: [],
-        errors: [err]
-      };
+      console.log('error in analyzeAllInFile:', err.message);
+      try {
+        return ParserResult.create([], err, module);
+      } catch (otherError) {
+        console.log('caught an extra error!', otherError);
+      }
     });
 }
 
@@ -265,7 +262,7 @@ function getDependencies(templateInfo) {
   return Promise.resolve()
     .then(() => htmlParser.getDependencies(templateInfo.contents, templateInfo.path))
     .catch(err => {
-      console.log('caught an error!', err);
+      console.log('dependency error!', err);
       if (err.code === 'ENOENT') {
         // console.log('    template does not exist, bro');
         return [];
