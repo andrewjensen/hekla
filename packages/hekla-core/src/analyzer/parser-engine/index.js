@@ -40,7 +40,7 @@ function buildDependencyGraph(components) {
       if (componentsByName.has(altName)) {
         throw new Error('duplicate components found:', altName);
       }
-      componentsByName
+      componentsByName.set(altName, component);
     });
   });
 
@@ -51,14 +51,12 @@ function buildDependencyGraph(components) {
     component.dependencies.forEach(dependencyName => {
       if (componentsByName.has(dependencyName)) {
         const dependency = componentsByName.get(dependencyName);
-        dependencyGraph.addLink(dependency.id, component.id);
+        dependencyGraph.addLink(component.id, dependency.id);
       } else {
         unknownDependencies.push(dependencyName);
       }
     });
   });
-
-
 
   return Promise.resolve(dependencyGraph);
 }
