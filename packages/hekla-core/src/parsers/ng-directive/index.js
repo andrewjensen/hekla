@@ -27,17 +27,8 @@ function analyzeAllInFile(ast, module) {
     .then(directiveCallNodes => {
       return Promise.all(directiveCallNodes.map(node => getComponentDetails(node, module)));
     })
-    .then(components => {
-      return ParserResult.create(components);
-    })
-    .catch(err => {
-      console.log('error in analyzeAllInFile:', err.message);
-      try {
-        return ParserResult.create([], err, module);
-      } catch (otherError) {
-        console.log('caught an extra error!', otherError);
-      }
-    });
+    .then(components => ParserResult.create(components))
+    .catch(err => ParserResult.create([], err, module));
 }
 
 function getDirectiveCallNodes(ast) {
@@ -81,7 +72,7 @@ function getComponentDetails(node, module) {
         altNames: [dashify(componentName)],
         type: 'angular-directive',
         path: filePath,
-        templatePath: templateInfo.path,
+        templatePath: (templateInfo ? templateInfo.path : null),
         properties: {
           angularModule: getModuleName(node),
           scope: getScope(directiveDefinitionObject)
@@ -115,7 +106,9 @@ function getModuleName(directiveCallNode) {
 function getScope(directiveDefinitionObject) {
   const scopeNode = getDefinitionProperty('scope', directiveDefinitionObject);
 
-  if (scopeNode.properties) {
+  if (!scopeNode) {
+    return null;
+  } else if (scopeNode.properties) {
     return scopeNode.properties
       .map(property => getScopeParam(property));
   } else if (scopeNode.type === 'BooleanLiteral') {
@@ -258,6 +251,10 @@ function getExternalTemplateContents(templatePath) {
 }
 
 function getDependencies(templateInfo) {
+  if (!templateInfo) {
+    return Promise.resolve([]);
+  }
+
   // console.log('getting dependencies:', templateInfo);
   return Promise.resolve()
     .then(() => htmlParser.getDependencies(templateInfo.contents, templateInfo.path))

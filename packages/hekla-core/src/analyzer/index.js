@@ -61,7 +61,10 @@ module.exports = class Analyzer {
           results.components.forEach(component => console.log(`      ${component.name}`));
           console.log('');
           console.log('    Errors:');
-          results.errors.forEach(error => console.log(`      ${error.message}`));
+          results.errors.forEach(error => {
+            console.log(`      ${error.modulePath}:`);
+            console.log(`        ${error.message}`);
+          });
           console.log('');
         }
 

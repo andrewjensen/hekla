@@ -22,6 +22,7 @@ function getComponentFromResults(results) {
 
 describe('AngularDirectiveParser', () => {
   let basicModule;
+  let noScopeModule;
   let inlineModule;
   let inlineConcatModule;
   let inlineArrayJoinModule;
@@ -30,6 +31,7 @@ describe('AngularDirectiveParser', () => {
 
   before(() => {
     basicModule = makeModule(path.resolve(__dirname, './test-examples/basic.js'));
+    noScopeModule = makeModule(path.resolve(__dirname, './test-examples/no-scope.js'));
     inlineModule = makeModule(path.resolve(__dirname, './test-examples/inline.js'));
     inlineConcatModule = makeModule(path.resolve(__dirname, './test-examples/inline-concat.js'));
     inlineArrayJoinModule = makeModule(path.resolve(__dirname, './test-examples/inline-array-join.js'));
@@ -55,6 +57,20 @@ describe('AngularDirectiveParser', () => {
               'cats',
               'quoted'
             ]
+          });
+          done();
+        })
+        .catch(err => done(err));
+    });
+
+    it('should extract a directive with no scope set', (done) => {
+      const parser = new AngularDirectiveParser();
+      parser.extractComponents(noScopeModule)
+        .then(getComponentFromResults)
+        .then(component => {
+          expect(component.properties).to.deep.equal({
+            angularModule: 'app',
+            scope: null
           });
           done();
         })
