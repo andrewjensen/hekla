@@ -33,7 +33,8 @@ function getFileTree(rootPath, globPattern, ignorePatterns) {
   return new Promise((resolve, reject) => {
     const options = {
       cwd: rootPath,
-      ignore: ignorePatterns
+      ignore: ignorePatterns,
+      absolute: true
     };
     glob(globPattern, options, (err, files) => {
       if (err) return reject(err);
