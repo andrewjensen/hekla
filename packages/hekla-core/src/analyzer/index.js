@@ -6,8 +6,6 @@ const BaseParser = require('../parsers/base-parser');
 const ParserEngine = require('./parser-engine');
 const utils = require('../utils');
 
-const DEBUG = false;
-
 module.exports = class Analyzer {
   constructor(config) {
     if (!Analyzer.isValidConfig(config)) {
@@ -23,7 +21,7 @@ module.exports = class Analyzer {
     console.log('');
     return Promise.resolve()
       .then(() => Analyzer.loadModules(this.config.loader))
-      .then(modules => Analyzer.extractComponents(modules, this.config.parsers))
+      .then(modules => Analyzer.extractComponents(modules, this.config.parsers, this.config.debug))
       .then(results => Analyzer.buildDependencyGraph(results.components))
       .then(dependencyGraph => Analyzer.export(dependencyGraph, this.config.output))
       .then(() => {
@@ -49,14 +47,14 @@ module.exports = class Analyzer {
       });
   }
 
-  static extractComponents(modules, parsers) {
+  static extractComponents(modules, parsers, debug) {
     console.log('  Extracting components...');
     return ParserEngine.parse(modules, parsers)
       .then(results => {
         console.log(`    Extracted ${results.components.length} components`);
         console.log(`    Caught ${results.errors.length} errors`);
         console.log('');
-        if (DEBUG) {
+        if (debug) {
           console.log('    Components found:');
           results.components.forEach(component => console.log(`      ${component.name}`));
           console.log('');

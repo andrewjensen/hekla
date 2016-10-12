@@ -33,12 +33,12 @@ function buildDependencyGraph(components) {
   components.forEach(component => {
     dependencyGraph.addNode(component.id, component);
     if (componentsByName.has(component.name)) {
-      throw new Error('duplicate components found:', component.name);
+      throw new Error(`duplicate components found: \`${component.name}\``);
     }
     componentsByName.set(component.name, component);
     component.altNames.forEach(altName => {
       if (componentsByName.has(altName)) {
-        throw new Error('duplicate components found:', altName);
+        throw new Error(`duplicate components found: \`${altName}\``);
       }
       componentsByName.set(altName, component);
     });
