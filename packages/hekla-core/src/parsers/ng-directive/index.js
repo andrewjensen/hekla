@@ -39,7 +39,16 @@ function getDirectiveCallNodes(ast) {
 }
 
 function getDirectiveDefinitionObject(directiveCallNode) {
-  const definitionFunction = directiveCallNode.arguments[1];
+  const secondArg = directiveCallNode.arguments[1];
+
+  let definitionFunction;
+  if (secondArg.type === 'ArrayExpression' && secondArg.elements[secondArg.elements.length - 1].type === 'FunctionExpression') {
+    definitionFunction = secondArg.elements[secondArg.elements.length - 1];
+  } else if (secondArg.type === 'FunctionExpression') {
+    definitionFunction = secondArg;
+  } else {
+    throw new Error('Cannot find directive definition object');
+  }
 
   const returnStatement = definitionFunction.body.body
     .reduce((previous, statement) => (statement.type === 'ReturnStatement' ? statement : previous), null);
@@ -69,7 +78,8 @@ function getComponentDetails(node, module) {
       const componentName = getName(node);
       return {
         name: componentName,
-        altNames: [dashify(componentName)],
+        // TODO: only add this if it will be different from the normal name
+        altNames: (dashify(componentName).indexOf('-') === -1 ? [] : [dashify(componentName)]),
         type: 'angular-directive',
         path: filePath,
         templatePath: (templateInfo ? templateInfo.path : null),

@@ -22,6 +22,7 @@ function getComponentFromResults(results) {
 
 describe('AngularDirectiveParser', () => {
   let basicModule;
+  let injectedModule;
   let noScopeModule;
   let inlineModule;
   let inlineConcatModule;
@@ -31,6 +32,7 @@ describe('AngularDirectiveParser', () => {
 
   before(() => {
     basicModule = makeModule(path.resolve(__dirname, './test-examples/basic.js'));
+    injectedModule = makeModule(path.resolve(__dirname, './test-examples/injected.js'));
     noScopeModule = makeModule(path.resolve(__dirname, './test-examples/no-scope.js'));
     inlineModule = makeModule(path.resolve(__dirname, './test-examples/inline.js'));
     inlineConcatModule = makeModule(path.resolve(__dirname, './test-examples/inline-concat.js'));
@@ -58,6 +60,17 @@ describe('AngularDirectiveParser', () => {
               'quoted'
             ]
           });
+          done();
+        })
+        .catch(err => done(err));
+    });
+
+    it('should extract a directive with Angular DI syntax', (done) => {
+      const parser = new AngularDirectiveParser();
+      parser.extractComponents(injectedModule)
+        .then(getComponentFromResults)
+        .then(component => {
+          expect(component.name).to.equal('myPetShop');
           done();
         })
         .catch(err => done(err));
