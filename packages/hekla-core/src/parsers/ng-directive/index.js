@@ -53,12 +53,22 @@ function getDirectiveDefinitionObject(directiveCallNode) {
   const returnStatement = definitionFunction.body.body
     .reduce((previous, statement) => (statement.type === 'ReturnStatement' ? statement : previous), null);
 
-  const definitionObject = returnStatement.argument;
-
-  return definitionObject;
+  if (returnStatement.argument.type === 'ObjectExpression') {
+    const definitionObject = returnStatement.argument;
+    return definitionObject;
+  } else if (returnStatement.argument.type === 'FunctionExpression') {
+    // This is just a link function, not a whole definition object.
+    return null;
+  } else {
+    throw new Error('Cannot find directive definition object');
+  }
 }
 
 function getDefinitionProperty(propertyName, directiveDefinitionObject) {
+  if (!directiveDefinitionObject) {
+    return null;
+  }
+
   return directiveDefinitionObject.properties
     .reduce((prev, property) => (property.key.type === 'Identifier' && property.key.name === propertyName ? property.value : prev), null);
 }

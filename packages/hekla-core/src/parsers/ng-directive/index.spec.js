@@ -24,6 +24,7 @@ describe('AngularDirectiveParser', () => {
   let basicModule;
   let injectedModule;
   let noScopeModule;
+  let minimalModule;
   let inlineModule;
   let inlineConcatModule;
   let inlineArrayJoinModule;
@@ -34,6 +35,7 @@ describe('AngularDirectiveParser', () => {
     basicModule = makeModule(path.resolve(__dirname, './test-examples/basic.js'));
     injectedModule = makeModule(path.resolve(__dirname, './test-examples/injected.js'));
     noScopeModule = makeModule(path.resolve(__dirname, './test-examples/no-scope.js'));
+    minimalModule = makeModule(path.resolve(__dirname, './test-examples/minimal.js'));
     inlineModule = makeModule(path.resolve(__dirname, './test-examples/inline.js'));
     inlineConcatModule = makeModule(path.resolve(__dirname, './test-examples/inline-concat.js'));
     inlineArrayJoinModule = makeModule(path.resolve(__dirname, './test-examples/inline-array-join.js'));
@@ -81,6 +83,21 @@ describe('AngularDirectiveParser', () => {
       parser.extractComponents(noScopeModule)
         .then(getComponentFromResults)
         .then(component => {
+          expect(component.properties).to.deep.equal({
+            angularModule: 'app',
+            scope: null
+          });
+          done();
+        })
+        .catch(err => done(err));
+    });
+
+    it('should extract a directive with only a link function', (done) => {
+      const parser = new AngularDirectiveParser();
+      parser.extractComponents(minimalModule)
+        .then(getComponentFromResults)
+        .then(component => {
+          expect(component.name).to.equal('myMouseHover');
           expect(component.properties).to.deep.equal({
             angularModule: 'app',
             scope: null
