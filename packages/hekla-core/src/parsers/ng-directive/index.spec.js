@@ -3,10 +3,11 @@
 const path = require('path');
 const AngularDirectiveParser = require('./index');
 
-function makeModule(path) {
+function makeModule(filename) {
+  const modulePath = path.resolve(__dirname, './test-examples/', filename);
   return {
-    path: path,
-    contents: loadContents(path)
+    path: modulePath,
+    contents: loadContents(modulePath)
   };
 }
 
@@ -21,33 +22,27 @@ function getComponentFromResults(results) {
 }
 
 describe('AngularDirectiveParser', () => {
-  let basicModule;
-  let injectedModule;
-  let noScopeModule;
-  let minimalModule;
-  let inlineModule;
-  let inlineConcatModule;
-  let inlineArrayJoinModule;
-  let templateUrlModule;
-  let templateUrlFnModule;
+  let examples = {};
 
   before(() => {
-    basicModule = makeModule(path.resolve(__dirname, './test-examples/basic.js'));
-    injectedModule = makeModule(path.resolve(__dirname, './test-examples/injected.js'));
-    noScopeModule = makeModule(path.resolve(__dirname, './test-examples/no-scope.js'));
-    minimalModule = makeModule(path.resolve(__dirname, './test-examples/minimal.js'));
-    inlineModule = makeModule(path.resolve(__dirname, './test-examples/inline.js'));
-    inlineConcatModule = makeModule(path.resolve(__dirname, './test-examples/inline-concat.js'));
-    inlineArrayJoinModule = makeModule(path.resolve(__dirname, './test-examples/inline-array-join.js'));
-    templateUrlModule = makeModule(path.resolve(__dirname, './test-examples/template-url.js'));
-    templateUrlFnModule = makeModule(path.resolve(__dirname, './test-examples/template-url-function.js'));
+    examples = {
+      basic: makeModule('basic.js'),
+      injected: makeModule('injected.js'),
+      noScope: makeModule('no-scope.js'),
+      minimal: makeModule('minimal.js'),
+      inline: makeModule('inline.js'),
+      inlineConcat: makeModule('inline-concat.js'),
+      inlineArrayJoin: makeModule('inline-array-join.js'),
+      templateUrl: makeModule('template-url.js'),
+      templateUrlFn: makeModule('template-url-function.js')
+    };
   });
 
   describe('extractComponents', () => {
 
     it('should extract a basic directive', (done) => {
       const parser = new AngularDirectiveParser();
-      parser.extractComponents(basicModule)
+      parser.extractComponents(examples.basic)
         .then(getComponentFromResults)
         .then(component => {
           expect(component.name).to.equal('myPetShop');
@@ -69,7 +64,7 @@ describe('AngularDirectiveParser', () => {
 
     it('should extract a directive with Angular DI syntax', (done) => {
       const parser = new AngularDirectiveParser();
-      parser.extractComponents(injectedModule)
+      parser.extractComponents(examples.injected)
         .then(getComponentFromResults)
         .then(component => {
           expect(component.name).to.equal('myPetShop');
@@ -80,7 +75,7 @@ describe('AngularDirectiveParser', () => {
 
     it('should extract a directive with no scope set', (done) => {
       const parser = new AngularDirectiveParser();
-      parser.extractComponents(noScopeModule)
+      parser.extractComponents(examples.noScope)
         .then(getComponentFromResults)
         .then(component => {
           expect(component.properties).to.deep.equal({
@@ -94,7 +89,7 @@ describe('AngularDirectiveParser', () => {
 
     it('should extract a directive with only a link function', (done) => {
       const parser = new AngularDirectiveParser();
-      parser.extractComponents(minimalModule)
+      parser.extractComponents(examples.minimal)
         .then(getComponentFromResults)
         .then(component => {
           expect(component.name).to.equal('myMouseHover');
@@ -109,7 +104,7 @@ describe('AngularDirectiveParser', () => {
 
     it('should extract a directive with required template file', (done) => {
       const parser = new AngularDirectiveParser();
-      parser.extractComponents(basicModule)
+      parser.extractComponents(examples.basic)
         .then(getComponentFromResults)
         .then(component => {
           expect(component.dependencies).to.deep.equal([
@@ -122,7 +117,7 @@ describe('AngularDirectiveParser', () => {
 
     it('should extract a directive with a simple inline template', (done) => {
       const parser = new AngularDirectiveParser();
-      parser.extractComponents(inlineModule)
+      parser.extractComponents(examples.inline)
         .then(getComponentFromResults)
         .then(component => {
           expect(component.name).to.equal('myPetShop');
@@ -137,7 +132,7 @@ describe('AngularDirectiveParser', () => {
 
     it('should extract a directive with a contatenated inline template', (done) => {
       const parser = new AngularDirectiveParser();
-      parser.extractComponents(inlineConcatModule)
+      parser.extractComponents(examples.inlineConcat)
         .then(getComponentFromResults)
         .then(component => {
           expect(component.dependencies).to.deep.equal([
@@ -150,7 +145,7 @@ describe('AngularDirectiveParser', () => {
 
     it('should extract a directive with an inline template as a joined array', (done) => {
       const parser = new AngularDirectiveParser();
-      parser.extractComponents(inlineArrayJoinModule)
+      parser.extractComponents(examples.inlineArrayJoin)
         .then(getComponentFromResults)
         .then(component => {
           expect(component.dependencies).to.deep.equal([
@@ -163,7 +158,7 @@ describe('AngularDirectiveParser', () => {
 
     it('should extract a directive with a templateUrl', (done) => {
       const parser = new AngularDirectiveParser();
-      parser.extractComponents(templateUrlModule)
+      parser.extractComponents(examples.templateUrl)
         .then(getComponentFromResults)
         .then(component => {
           expect(component.dependencies).to.deep.equal([
@@ -176,7 +171,7 @@ describe('AngularDirectiveParser', () => {
 
     it('should gracefully fail with an evaluated templateUrl', (done) => {
       const parser = new AngularDirectiveParser();
-      parser.extractComponents(templateUrlFnModule)
+      parser.extractComponents(examples.templateUrlFn)
         .then(getComponentFromResults)
         .then(component => {
           expect(component.dependencies).to.deep.equal([]);
