@@ -25,7 +25,7 @@ module.exports = class AngularDirectiveParser extends BaseParser {
 function analyzeAllInFile(ast, module) {
   return Promise.resolve(getDirectiveCallNodes(ast))
     .then(directiveCallNodes => {
-      return Promise.all(directiveCallNodes.map(node => getComponentDetails(node, module)));
+      return Promise.all(directiveCallNodes.map(node => getComponentDetails(node, module, ast)));
     })
     .then(components => ParserResult.create(components))
     .catch(err => ParserResult.create([], err, module));
@@ -73,12 +73,12 @@ function getDefinitionProperty(propertyName, directiveDefinitionObject) {
     .reduce((prev, property) => (property.key.type === 'Identifier' && property.key.name === propertyName ? property.value : prev), null);
 }
 
-function getComponentDetails(node, module) {
+function getComponentDetails(node, module, ast) {
   const directiveDefinitionObject = getDirectiveDefinitionObject(node);
   const filePath = module.path;
 
   let templateInfo = {};
-  return getTemplateInfo(directiveDefinitionObject, filePath)
+  return getTemplateInfo(directiveDefinitionObject, filePath, ast)
     .then(info => {
       templateInfo = info;
       return info;
@@ -144,7 +144,7 @@ function getScopeParam(propertyObject) {
   else throw new Error('invalid node type for scope parameter: ' + propertyObject.key.type);
 }
 
-function getTemplateInfo(directiveDefinitionObject, filePath) {
+function getTemplateInfo(directiveDefinitionObject, filePath, ast) {
   const templateProperty = getDefinitionProperty('template', directiveDefinitionObject);
   const templateUrlProperty = getDefinitionProperty('templateUrl', directiveDefinitionObject);
 
@@ -172,7 +172,7 @@ function getTemplateInfo(directiveDefinitionObject, filePath) {
     return Promise.resolve({
       type: 'inline',
       path: null,
-      contents: reduceComplexTemplate(templateProperty)
+      contents: reduceComplexTemplate(templateProperty, ast)
     });
   } else if (templateUrlProperty && templateUrlProperty.type === 'StringLiteral') {
     // templateUrl string
@@ -206,14 +206,24 @@ function getTemplateInfo(directiveDefinitionObject, filePath) {
   }
 }
 
-function reduceComplexTemplate(templateProperty) {
+function reduceComplexTemplate(templateProperty, ast) {
   if (templateProperty.type === 'BinaryExpression') {
     return reduceConcatenatedTemplate(templateProperty);
   } else if (templateProperty.type === 'CallExpression') {
     return reduceArrayJoinTemplate(templateProperty);
-    return '';
+  } else if (templateProperty.type === 'Identifier') {
+    return reduceTemplateFromVariable(templateProperty.name, ast);
   } else {
     throw new Error('invalid complex template');
+  }
+}
+
+function reduceTemplateFromVariable(variableName, ast) {
+  const declarations = utils.getVariableDeclarationsByName(ast, variableName);
+  if (declarations.length === 1) {
+    return reduceComplexTemplate(declarations[0], ast);
+  } else {
+    throw new Error(`Cannot resolve template from variable: ${variableName}`);
   }
 }
 

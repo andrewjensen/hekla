@@ -33,6 +33,7 @@ describe('AngularDirectiveParser', () => {
       inline: makeModule('inline.js'),
       inlineConcat: makeModule('inline-concat.js'),
       inlineArrayJoin: makeModule('inline-array-join.js'),
+      inlineVariable: makeModule('inline-variable.js'),
       templateUrl: makeModule('template-url.js'),
       templateUrlFn: makeModule('template-url-function.js')
     };
@@ -146,6 +147,19 @@ describe('AngularDirectiveParser', () => {
     it('should extract a directive with an inline template as a joined array', (done) => {
       const parser = new AngularDirectiveParser();
       parser.extractComponents(examples.inlineArrayJoin)
+        .then(getComponentFromResults)
+        .then(component => {
+          expect(component.dependencies).to.deep.equal([
+            'my-pet-title'
+          ]);
+          done();
+        })
+        .catch(err => done(err));
+    });
+
+    it('should extract a directive with an inline template from a variable', (done) => {
+      const parser = new AngularDirectiveParser();
+      parser.extractComponents(examples.inlineVariable)
         .then(getComponentFromResults)
         .then(component => {
           expect(component.dependencies).to.deep.equal([

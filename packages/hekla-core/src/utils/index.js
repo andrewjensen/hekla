@@ -15,6 +15,7 @@ module.exports = {
   isASTNode,
   reduceCallName,
   reduceMemberName,
+  getVariableDeclarationsByName
 }
 
 function getFileExists(filePath) {
@@ -106,6 +107,21 @@ function reduceMemberName(memberExpressionNode) {
   let propertyName = memberExpressionNode.property.name;
 
   return `${objectName}.${propertyName}`;
+}
+
+function getVariableDeclarationsByName(node, identifierName) {
+  const results = [];
+
+  const declarationNodes = getNodesByType(node, 'VariableDeclaration');
+  declarationNodes.forEach(node => {
+    node.declarations.forEach(declarator => {
+      if (declarator.id.type === 'Identifier' && declarator.id.name === identifierName) {
+        results.push(declarator.init);
+      }
+    });
+  });
+
+  return results;
 }
 
 function simplifyFunctionDeclarationNode(node) {
