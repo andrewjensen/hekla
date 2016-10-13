@@ -21,10 +21,10 @@ class Graph extends Component {
   _graphRendered = false;
 
   componentWillReceiveProps(props) {
-    const { graph: { nodes, links } } = props;
+    const { graph: { components, componentDependencies } } = props;
 
     if (!this._graphRendered) {
-      this.renderGraph(nodes, links);
+      this.renderGraph(components, componentDependencies);
       this._graphRendered = true;
     }
   }
@@ -68,15 +68,15 @@ class Graph extends Component {
       .attr('width', width)
       .attr('height', height);
 
-    const levelScale = scaleLinear()
-      .domain([0, max(nodes, d => d.level)])
-      .range([FRAME_PADDING, height - FRAME_PADDING]);
+    // const levelScale = scaleLinear()
+    //   .domain([0, max(nodes, d => d.level)])
+    //   .range([FRAME_PADDING, height - FRAME_PADDING]);
 
     const simulation = forceSimulation()
       .force('link', forceLink().id(d => d.id).distance(60))
       .force('charge', forceManyBody().strength(-400).distanceMax(500))
       .force('centerX', forceX(width / 2).strength(0.05))
-      .force('levelY', forceY().y(d => levelScale(d.level)).strength(0.2));
+      // .force('levelY', forceY().y(d => levelScale(d.level)).strength(0.2));
 
     var link = svg.append('g')
         .attr('class', 'links')
