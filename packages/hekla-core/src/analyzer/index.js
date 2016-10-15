@@ -1,7 +1,7 @@
 'use strict';
 
-const BaseLoader = require('../loaders/base-loader');
-const BaseParser = require('../parsers/base-parser');
+const BaseLoader = require('../loaders/BaseLoader');
+const BaseParser = require('../parsers/BaseParser');
 
 const ParserEngine = require('./parser-engine');
 const utils = require('../utils');

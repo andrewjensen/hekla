@@ -1,4 +1,4 @@
 module.exports = {
-  FileLoader: require('./file-loader')
+  FileLoader: require('./FileLoader')
   // WebpackLoader: require('./webpack-loader')
 };

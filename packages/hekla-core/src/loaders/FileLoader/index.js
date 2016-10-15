@@ -3,7 +3,7 @@
 const path = require('path');
 const glob = require('glob');
 
-const BaseLoader = require('../base-loader');
+const BaseLoader = require('../BaseLoader');
 const utils = require('../../utils');
 
 module.exports = class FileLoader extends BaseLoader {

@@ -4,7 +4,7 @@ const path = require('path');
 const dashify = require('dashify');
 const utils = require('../../utils');
 const htmlParser = require('../../analyzer/html-parser');
-const BaseParser = require('../base-parser');
+const BaseParser = require('../BaseParser');
 const ParserResult = require('../../utils/parser-result');
 
 module.exports = class AngularDirectiveParser extends BaseParser {
