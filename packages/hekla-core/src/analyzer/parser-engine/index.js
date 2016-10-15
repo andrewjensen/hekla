@@ -36,12 +36,14 @@ function buildDependencyGraph(components) {
       throw new Error(`duplicate components found: \`${component.name}\``);
     }
     componentsByName.set(component.name, component);
-    component.altNames.forEach(altName => {
-      if (componentsByName.has(altName)) {
-        throw new Error(`duplicate components found: \`${altName}\``);
-      }
-      componentsByName.set(altName, component);
-    });
+    if (component.altNames) {
+      component.altNames.forEach(altName => {
+        if (componentsByName.has(altName)) {
+          throw new Error(`duplicate components found: \`${altName}\``);
+        }
+        componentsByName.set(altName, component);
+      });
+    }
   });
 
   const unknownDependencies = [];
