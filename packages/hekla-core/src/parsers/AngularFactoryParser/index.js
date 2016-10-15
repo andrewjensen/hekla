@@ -2,6 +2,7 @@
 
 const path = require('path');
 const astUtils = require('../../utils/ast-utils');
+const ngUtils = require('../../utils/ng-utils');
 const BaseParser = require('../BaseParser');
 const ParserResult = require('../../utils/parser-result');
 
@@ -20,8 +21,6 @@ module.exports = class AngularFactoryParser extends BaseParser {
   }
 };
 
-// TODO: refactor the copy pasta into shared Angular utilities
-
 function analyzeAllInFile(ast, module) {
   return Promise.resolve(getFactoryCallNodes(ast))
     .then(factoryCallNodes => {
@@ -32,78 +31,22 @@ function analyzeAllInFile(ast, module) {
 }
 
 function getFactoryCallNodes(ast) {
-  return astUtils.getNodesByType(ast.program, 'CallExpression')
-    .filter(node => {
-      return (node.callee && node.callee.property && node.callee.property.name === 'factory');
-    });
+  return astUtils
+    .getNodesByType(ast.program, 'CallExpression')
+    .filter(node => (astUtils.getDeepProperty(node, 'callee.property.name') === 'factory'));
 }
 
 function getComponentDetails(callNode, module, ast) {
-  const definitionFunction = getDefinitionFunction(callNode, ast);
+  const definitionFunction = ngUtils.getDefinitionFunction(callNode, ast);
   return {
-    name: getName(callNode),
+    name: ngUtils.getName(callNode),
     type: 'angular-factory',
     path: '',
     properties: {
-      angularModule: getModuleName(callNode)
+      angularModule: ngUtils.getModuleName(callNode)
     },
     dependencies: getDependencies(definitionFunction)
   };
-}
-
-function getName(callNode) {
-  const factoryNameNode = callNode.arguments[0];
-  if (factoryNameNode.type === 'StringLiteral') {
-    return factoryNameNode.value;
-  } else {
-    throw new Error('factory name type not handled: ', factoryNameNode.type);
-  }
-}
-
-function getModuleName(callNode) {
-  if (callNode.callee.type === 'MemberExpression' &&
-      callNode.callee.object.type === 'CallExpression' &&
-      callNode.callee.object.callee.property.name === 'module') {
-
-    const ngModuleCallNode = callNode.callee.object;
-    return ngModuleCallNode.arguments[0].value;
-  } else {
-    return null;
-  }
-}
-
-function getDefinitionFunction(callNode, ast) {
-  const secondArg = callNode.arguments[1];
-
-  let possibleDefinitionFunction;
-
-  if (secondArg.type === 'Identifier') {
-    // Function is saved in a variable - resolve it
-    const declarations = astUtils.getVariableDeclarationsByName(ast, secondArg.name);
-    if (declarations.length === 1) {
-      possibleDefinitionFunction = declarations[0];
-    } else {
-      throw new Error(`Cannot resolve template from variable: ${variableName}`);
-    }
-  } else {
-    possibleDefinitionFunction = secondArg;
-  }
-
-  // We may have found the function, but we may have found a DI array.
-  // Reduce it.
-  let definitionFunction;
-
-  if (possibleDefinitionFunction.type === 'ArrayExpression' &&
-      possibleDefinitionFunction.elements[possibleDefinitionFunction.elements.length - 1].type === 'FunctionExpression'
-  ) {
-    // Angular DI syntax
-    return possibleDefinitionFunction.elements[possibleDefinitionFunction.elements.length - 1];
-  } else if (possibleDefinitionFunction.type === 'FunctionExpression') {
-    // Standard function
-    return possibleDefinitionFunction;
-  } else {
-    throw new Error('Cannot find definition function');
-  }
 }
 
 function getDependencies(definitionFunction) {

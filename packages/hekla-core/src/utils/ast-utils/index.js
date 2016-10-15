@@ -10,6 +10,7 @@ module.exports = {
   filterNodes,
   isPromiseCall,
   isASTNode,
+  getDeepProperty,
   reduceCallName,
   reduceMemberName,
   getVariableDeclarationsByName,
@@ -43,6 +44,34 @@ function isPromiseCall(callExpNode) {
 
 function isASTNode(value, key, parent) {
   return (value && typeof value === 'object' && value.type);
+}
+
+/**
+ * Gets a deep property from a node, if it exists.
+ * If the property does not exist, undefined is returned
+ *
+ * Example:
+ * getDeepProperty(myCallNode, 'callee.property.name')
+ */
+function getDeepProperty(node, deepProperty) {
+  const pieces = deepProperty.split('.');
+  let currentChildNode = node;
+  for (let i = 0; i < pieces.length; i++) {
+    if (!currentChildNode.hasOwnProperty(pieces[i])) {
+      // A property along the chain is missing
+      return undefined;
+    }
+
+    if (i === pieces.length - 1) {
+      // This is the deep property
+      return currentChildNode[pieces[i]];
+    }
+
+    // Go to the next node down in the chain
+    currentChildNode = currentChildNode[pieces[i]];
+  }
+
+  return undefined;
 }
 
 function reduceCallName(callExpressionNode) {
