@@ -1,6 +1,6 @@
 'use strict';
 
-const utils = require('../../utils');
+const fsUtils = require('../../utils/fs-utils');
 const ParserResult = require('../../utils/parser-result');
 const DependencyGraph = require('../../utils/dependency-graph');
 
@@ -94,7 +94,7 @@ function analyzeFile(file, rootPath) {
   // console.log('analyzeFile', file);
   const filePath = path.resolve(rootPath, file);
 
-  return utils.getFileContents(filePath)
+  return fsUtils.getFileContents(filePath)
     .then(contents => {
       return parseAST(contents, filePath);
     })

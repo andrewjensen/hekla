@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const utils = require('../../utils');
+const astUtils = require('../../utils/ast-utils');
 const BaseParser = require('../BaseParser');
 const ParserResult = require('../../utils/parser-result');
 
@@ -11,7 +11,7 @@ module.exports = class AngularFactoryParser extends BaseParser {
   }
 
   extractComponents(module) {
-    return utils.parseAST(module.contents, module.path)
+    return astUtils.parseAST(module.contents, module.path)
       .then(ast => analyzeAllInFile(ast, module))
       .catch(err => {
         console.error(`Error parsing AST for ${module.path}: `, err.stack);
@@ -32,7 +32,7 @@ function analyzeAllInFile(ast, module) {
 }
 
 function getFactoryCallNodes(ast) {
-  return utils.getNodesByType(ast.program, 'CallExpression')
+  return astUtils.getNodesByType(ast.program, 'CallExpression')
     .filter(node => {
       return (node.callee && node.callee.property && node.callee.property.name === 'factory');
     });
@@ -79,7 +79,7 @@ function getDefinitionFunction(callNode, ast) {
 
   if (secondArg.type === 'Identifier') {
     // Function is saved in a variable - resolve it
-    const declarations = utils.getVariableDeclarationsByName(ast, secondArg.name);
+    const declarations = astUtils.getVariableDeclarationsByName(ast, secondArg.name);
     if (declarations.length === 1) {
       possibleDefinitionFunction = declarations[0];
     } else {

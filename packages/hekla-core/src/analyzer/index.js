@@ -4,7 +4,7 @@ const BaseLoader = require('../loaders/BaseLoader');
 const BaseParser = require('../parsers/BaseParser');
 
 const ParserEngine = require('./parser-engine');
-const utils = require('../utils');
+const fsUtils = require('../utils/fs-utils');
 
 module.exports = class Analyzer {
   constructor(config) {
@@ -86,7 +86,7 @@ module.exports = class Analyzer {
       components: dependencyGraph.nodes.map(node => node.value),
       componentDependencies: dependencyGraph.links
     };
-    return utils.writeJSON(exportable, outputFilename)
+    return fsUtils.writeJSON(exportable, outputFilename)
       .then(() => {
         console.log(`    Saved to ${outputFilename}`);
         console.log('');

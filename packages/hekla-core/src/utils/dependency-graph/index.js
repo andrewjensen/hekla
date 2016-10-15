@@ -1,7 +1,5 @@
 'use strict';
 
-const Utils = require('../');
-
 module.exports = class DependencyGraph {
   constructor() {
     this.nodes = [];

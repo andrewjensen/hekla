@@ -4,7 +4,7 @@ const path = require('path');
 const glob = require('glob');
 
 const BaseLoader = require('../BaseLoader');
-const utils = require('../../utils');
+const fsUtils = require('../../utils/fs-utils');
 
 module.exports = class FileLoader extends BaseLoader {
 
@@ -62,7 +62,7 @@ function expandModules(files, rootPath) {
 
 function getModuleSource(module, rootPath) {
   const filePath = path.resolve(rootPath, module.path);
-  return utils.getFileContents(filePath)
+  return fsUtils.getFileContents(filePath)
     .then(contents => {
       return Object.assign({}, module, {
         contents: contents

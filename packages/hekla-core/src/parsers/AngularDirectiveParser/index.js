@@ -2,7 +2,9 @@
 
 const path = require('path');
 const dashify = require('dashify');
-const utils = require('../../utils');
+
+const astUtils = require('../../utils/ast-utils');
+const fsUtils = require('../../utils/fs-utils');
 const htmlParser = require('../../analyzer/html-parser');
 const BaseParser = require('../BaseParser');
 const ParserResult = require('../../utils/parser-result');
@@ -13,7 +15,7 @@ module.exports = class AngularDirectiveParser extends BaseParser {
   }
 
   extractComponents(module) {
-    return utils.parseAST(module.contents, module.path)
+    return astUtils.parseAST(module.contents, module.path)
       .then(ast => analyzeAllInFile(ast, module))
       .catch(err => {
         console.error(`Error parsing AST for ${module.path}: `, err.stack);
@@ -32,7 +34,7 @@ function analyzeAllInFile(ast, module) {
 }
 
 function getDirectiveCallNodes(ast) {
-  return utils.getNodesByType(ast.program, 'CallExpression')
+  return astUtils.getNodesByType(ast.program, 'CallExpression')
     .filter(node => {
       return (node.callee && node.callee.property && node.callee.property.name === 'directive');
     });
@@ -63,7 +65,7 @@ function getDefinitionFunction(directiveCallNode, ast) {
 
   if (secondArg.type === 'Identifier') {
     // Function is saved in a variable - resolve it
-    const declarations = utils.getVariableDeclarationsByName(ast, secondArg.name);
+    const declarations = astUtils.getVariableDeclarationsByName(ast, secondArg.name);
     if (declarations.length === 1) {
       possibleDefinitionFunction = declarations[0];
     } else {
@@ -177,7 +179,7 @@ function getTemplateInfo(directiveDefinitionObject, filePath, ast) {
   if (templateProperty && templateProperty.type === 'CallExpression' && templateProperty.callee.name === 'require') {
     // Required template file
     const requiredPath = templateProperty.arguments[0].value;
-    const templatePath = utils.resolveRequirePath(requiredPath, filePath);
+    const templatePath = astUtils.resolveRequirePath(requiredPath, filePath);
     return getExternalTemplateContents(templatePath)
       .then(contents => {
         return {
@@ -245,7 +247,7 @@ function reduceComplexTemplate(templateProperty, ast) {
 }
 
 function reduceTemplateFromVariable(variableName, ast) {
-  const declarations = utils.getVariableDeclarationsByName(ast, variableName);
+  const declarations = astUtils.getVariableDeclarationsByName(ast, variableName);
   if (declarations.length === 1) {
     return reduceComplexTemplate(declarations[0], ast);
   } else {
@@ -275,7 +277,7 @@ function resolveTemplatePath(templateUrl, componentPath) {
 
   if (getDirectoryName(templateUrl) === getDirectoryName(componentPath)) {
     const templatePath = componentPath.replace(componentFilename, templateFilename);
-    return utils.getFileExists(templatePath)
+    return fsUtils.getFileExists(templatePath)
       .then(fileExists => {
         if (fileExists) {
           // The template is in the same directory as the component.
@@ -303,7 +305,7 @@ function getFileName(path) {
 }
 
 function getExternalTemplateContents(templatePath) {
-  return utils.getFileContents(templatePath)
+  return fsUtils.getFileContents(templatePath)
 }
 
 function getDependencies(templateInfo) {

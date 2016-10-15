@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs');
-const utils = require('../../utils');
+const astUtils = require('../../utils/ast-utils');
 const htmlParser = require('../../html-parser');
 
 module.exports = {
@@ -30,7 +30,7 @@ function analyzeAllInFile(ast, filePath, rootPath) {
 }
 
 function getComponentCallNodes(ast) {
-  return utils.getNodesByType(ast.program, 'CallExpression')
+  return astUtils.getNodesByType(ast.program, 'CallExpression')
     .filter(node => {
       // Look for SOMETHING.extend({ ... })
       return (node.callee &&
