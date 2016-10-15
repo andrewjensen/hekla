@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 const babylon = require('babylon');
 const walk = require('tree-walk');
 
@@ -15,7 +16,8 @@ module.exports = {
   isASTNode,
   reduceCallName,
   reduceMemberName,
-  getVariableDeclarationsByName
+  getVariableDeclarationsByName,
+  resolveRequirePath
 }
 
 function getFileExists(filePath) {
@@ -122,6 +124,15 @@ function getVariableDeclarationsByName(node, identifierName) {
   });
 
   return results;
+}
+
+function resolveRequirePath(requiredPathString, modulePath) {
+  let cleanRequiredPath = requiredPathString;
+  if (requiredPathString.indexOf('!') !== -1) {
+    const pieces = requiredPathString.split('!');
+    cleanRequiredPath = pieces[pieces.length - 1];
+  }
+  return path.resolve(modulePath, '..', cleanRequiredPath);
 }
 
 function simplifyFunctionDeclarationNode(node) {

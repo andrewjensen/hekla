@@ -38,17 +38,9 @@ function getDirectiveCallNodes(ast) {
     });
 }
 
-function getDirectiveDefinitionObject(directiveCallNode) {
-  const secondArg = directiveCallNode.arguments[1];
+function getDirectiveDefinitionObject(directiveCallNode, ast) {
 
-  let definitionFunction;
-  if (secondArg.type === 'ArrayExpression' && secondArg.elements[secondArg.elements.length - 1].type === 'FunctionExpression') {
-    definitionFunction = secondArg.elements[secondArg.elements.length - 1];
-  } else if (secondArg.type === 'FunctionExpression') {
-    definitionFunction = secondArg;
-  } else {
-    throw new Error('Cannot find directive definition object');
-  }
+  const definitionFunction = getDefinitionFunction(directiveCallNode, ast);
 
   const returnStatement = definitionFunction.body.body
     .reduce((previous, statement) => (statement.type === 'ReturnStatement' ? statement : previous), null);
@@ -64,6 +56,40 @@ function getDirectiveDefinitionObject(directiveCallNode) {
   }
 }
 
+function getDefinitionFunction(directiveCallNode, ast) {
+  const secondArg = directiveCallNode.arguments[1];
+
+  let possibleDefinitionFunction;
+
+  if (secondArg.type === 'Identifier') {
+    // Function is saved in a variable - resolve it
+    const declarations = utils.getVariableDeclarationsByName(ast, secondArg.name);
+    if (declarations.length === 1) {
+      possibleDefinitionFunction = declarations[0];
+    } else {
+      throw new Error(`Cannot resolve template from variable: ${variableName}`);
+    }
+  } else {
+    possibleDefinitionFunction = secondArg;
+  }
+
+  // We may have found the function, but we may have found a DI array.
+  // Reduce it.
+  let definitionFunction;
+
+  if (possibleDefinitionFunction.type === 'ArrayExpression' &&
+      possibleDefinitionFunction.elements[possibleDefinitionFunction.elements.length - 1].type === 'FunctionExpression'
+  ) {
+    // Angular DI syntax
+    return possibleDefinitionFunction.elements[possibleDefinitionFunction.elements.length - 1];
+  } else if (possibleDefinitionFunction.type === 'FunctionExpression') {
+    // Standard function
+    return possibleDefinitionFunction;
+  } else {
+    throw new Error('Cannot find directive definition object');
+  }
+}
+
 function getDefinitionProperty(propertyName, directiveDefinitionObject) {
   if (!directiveDefinitionObject) {
     return null;
@@ -74,7 +100,7 @@ function getDefinitionProperty(propertyName, directiveDefinitionObject) {
 }
 
 function getComponentDetails(node, module, ast) {
-  const directiveDefinitionObject = getDirectiveDefinitionObject(node);
+  const directiveDefinitionObject = getDirectiveDefinitionObject(node, ast);
   const filePath = module.path;
 
   let templateInfo = {};
@@ -151,7 +177,7 @@ function getTemplateInfo(directiveDefinitionObject, filePath, ast) {
   if (templateProperty && templateProperty.type === 'CallExpression' && templateProperty.callee.name === 'require') {
     // Required template file
     const requiredPath = templateProperty.arguments[0].value;
-    const templatePath = path.resolve(filePath, '..', requiredPath);
+    const templatePath = utils.resolveRequirePath(requiredPath, filePath);
     return getExternalTemplateContents(templatePath)
       .then(contents => {
         return {

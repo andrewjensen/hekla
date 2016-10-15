@@ -30,12 +30,15 @@ describe('AngularDirectiveParser', () => {
       injected: makeModule('injected.js'),
       noScope: makeModule('no-scope.js'),
       minimal: makeModule('minimal.js'),
+      twoDirectives: makeModule('two-directives.js'),
+      splitDefinitionInjected: makeModule('split-definition-injected.js'),
       inline: makeModule('inline.js'),
       inlineConcat: makeModule('inline-concat.js'),
       inlineArrayJoin: makeModule('inline-array-join.js'),
       inlineVariable: makeModule('inline-variable.js'),
       templateUrl: makeModule('template-url.js'),
-      templateUrlFn: makeModule('template-url-function.js')
+      templateUrlFn: makeModule('template-url-function.js'),
+      webpackLoaderTemplate: makeModule('webpack-loader-template.js')
     };
   });
 
@@ -97,6 +100,43 @@ describe('AngularDirectiveParser', () => {
           expect(component.properties).to.deep.equal({
             angularModule: 'app',
             scope: null
+          });
+          done();
+        })
+        .catch(err => done(err));
+    });
+
+    it('should extract two directives from a single file', (done) => {
+      const parser = new AngularDirectiveParser();
+      parser.extractComponents(examples.twoDirectives)
+        .then(results => {
+          if (results.errors.length > 0) {
+            console.error('Error while extracting components:');
+            console.error(results.errors[0].stack);
+          }
+          expect(results.components).have.length(2);
+          expect(results.errors).to.have.length(0);
+          return results.components;
+        })
+        .then(components => {
+          const firstComponent = components[0];
+          expect(firstComponent.name).to.equal('myPetMenu');
+          expect(firstComponent.properties).to.deep.equal({
+            angularModule: 'app',
+            scope: [
+              'pets'
+            ]
+          });
+          expect(firstComponent.dependencies).to.deep.equal([
+            'my-pet-menu-item'
+          ]);
+          const secondComponent = components[1];
+          expect(secondComponent.name).to.equal('myPetMenuItem');
+          expect(secondComponent.properties).to.deep.equal({
+            angularModule: 'app',
+            scope: [
+              'name'
+            ]
           });
           done();
         })
@@ -178,6 +218,31 @@ describe('AngularDirectiveParser', () => {
           expect(component.dependencies).to.deep.equal([
             'my-pet-title'
           ]);
+          done();
+        })
+        .catch(err => done(err));
+    });
+
+    it('should extract a directive with a required template including a webpack loader prefix', (done) => {
+      const parser = new AngularDirectiveParser();
+      parser.extractComponents(examples.webpackLoaderTemplate)
+        .then(getComponentFromResults)
+        .then(component => {
+          expect(component.name).to.equal('myPetShop');
+          expect(component.dependencies).to.deep.equal([
+            'my-pet-title'
+          ]);
+          done();
+        })
+        .catch(err => done(err));
+    });
+
+    it('should extract a directive with a definition function saved in a variable', (done) => {
+      const parser = new AngularDirectiveParser();
+      parser.extractComponents(examples.splitDefinitionInjected)
+        .then(getComponentFromResults)
+        .then(component => {
+          expect(component.name).to.equal('myPetShop');
           done();
         })
         .catch(err => done(err));
