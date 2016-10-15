@@ -67,7 +67,7 @@ function getDefinitionFunction(directiveCallNode, ast) {
     if (declarations.length === 1) {
       possibleDefinitionFunction = declarations[0];
     } else {
-      throw new Error(`Cannot resolve template from variable: ${variableName}`);
+      throw new Error(`Cannot resolve definition function from variable: ${variableName}`);
     }
   } else {
     possibleDefinitionFunction = secondArg;
