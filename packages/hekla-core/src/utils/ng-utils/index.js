@@ -50,7 +50,12 @@ function getDefinitionFunction(callNode, ast) {
 
   if (secondArg.type === 'Identifier') {
     // Function is saved in a variable - resolve it
-    const declarations = astUtils.getVariableDeclarationsByName(ast, secondArg.name);
+    const variableName = secondArg.name;
+    const declarations = [].concat.apply([], [
+      astUtils.getVariableDeclarationsByName(ast, variableName),
+      astUtils.getFunctionDeclarationsByName(ast, variableName)
+    ]);
+
     if (declarations.length === 1) {
       possibleDefinitionFunction = declarations[0];
     } else {
@@ -69,7 +74,7 @@ function getDefinitionFunction(callNode, ast) {
   ) {
     // Angular DI syntax
     return possibleDefinitionFunction.elements[possibleDefinitionFunction.elements.length - 1];
-  } else if (possibleDefinitionFunction.type === 'FunctionExpression') {
+  } else if (possibleDefinitionFunction.type === 'FunctionExpression' || possibleDefinitionFunction.type === 'FunctionDeclaration') {
     // Standard function
     return possibleDefinitionFunction;
   } else {

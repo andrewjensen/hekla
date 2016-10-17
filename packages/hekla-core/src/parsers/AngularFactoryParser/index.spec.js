@@ -26,7 +26,8 @@ describe('AngularFactoryParser', () => {
 
   before(() => {
     examples = {
-      basic: makeModule('basic.js')
+      basic: makeModule('basic.js'),
+      splitDefinition: makeModule('split-definition.js')
     };
   });
 
@@ -35,6 +36,25 @@ describe('AngularFactoryParser', () => {
     it('should extract a basic factory', (done) => {
       const parser = new AngularFactoryParser();
       parser.extractComponents(examples.basic)
+        .then(getComponentFromResults)
+        .then(component => {
+          expect(component.name).to.equal('animalService');
+          expect(component.type).to.equal('angular-factory');
+          expect(component.properties).to.deep.equal({
+            angularModule: 'app'
+          });
+          expect(component.dependencies).to.deep.equal([
+            '$http',
+            'anotherService'
+          ]);
+          done();
+        })
+        .catch(err => done(err));
+    });
+
+    it('should extract a factory with a split definition function', (done) => {
+      const parser = new AngularFactoryParser();
+      parser.extractComponents(examples.splitDefinition)
         .then(getComponentFromResults)
         .then(component => {
           expect(component.name).to.equal('animalService');

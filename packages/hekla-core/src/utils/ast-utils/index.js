@@ -13,6 +13,7 @@ module.exports = {
   getDeepProperty,
   reduceCallName,
   reduceMemberName,
+  getFunctionDeclarationsByName,
   getVariableDeclarationsByName,
   resolveRequirePath
 };
@@ -104,6 +105,11 @@ function reduceMemberName(memberExpressionNode) {
   let propertyName = memberExpressionNode.property.name;
 
   return `${objectName}.${propertyName}`;
+}
+
+function getFunctionDeclarationsByName(node, identifierName) {
+  return getNodesByType(node, 'FunctionDeclaration')
+    .filter(node => getDeepProperty(node, 'id.name') === identifierName);
 }
 
 function getVariableDeclarationsByName(node, identifierName) {
