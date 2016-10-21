@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { json } from 'd3-request';
 import './App.css';
 
-import Header from './header/Header';
-import Graph from './graph/Graph';
+import Header from './Header';
+import Graph from './Graph';
 import Sidebar from './Sidebar';
 
 const JSON_URL = 'http://localhost:8081/dependencies.json';
