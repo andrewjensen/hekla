@@ -19,6 +19,6 @@
   flex: 6;
 }
 
-.App > .content > .details-container {
+.App > .content > .sidebar-container {
   flex: 2;
 }

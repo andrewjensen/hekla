@@ -1,12 +1,19 @@
 import React, { Component } from 'react';
+import AppBar from 'material-ui/AppBar';
+
 import './Header.css';
+
+const SearchBar = () => (
+  <div>Hello</div>
+);
 
 class Header extends Component {
   render() {
     return (
-      <div className="Header">
-        <h1>Dependencies</h1>
-      </div>
+      <AppBar
+        title="Dependency Viewer"
+        iconElementRight={<SearchBar />}
+      />
     );
   }
 }

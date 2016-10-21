@@ -145,7 +145,8 @@ class Graph extends Component {
       if (node.name.indexOf('external') === 0) {
         return 'gray';
       } else {
-        return 'navy';
+        // return 'navy';
+        return '#303F9F';
       }
     }
   }

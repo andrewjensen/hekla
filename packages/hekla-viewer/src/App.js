@@ -4,7 +4,7 @@ import './App.css';
 
 import Header from './header/Header';
 import Graph from './graph/Graph';
-import Details from './details/Details';
+import Sidebar from './Sidebar';
 
 const JSON_URL = 'http://localhost:8081/dependencies.json';
 
@@ -48,8 +48,9 @@ class App extends Component {
             />
           </div>
 
-          <div className="details-container">
-            <Details
+          <div className="sidebar-container">
+            <Sidebar
+              graph={this.state.graph}
               node={this.state.selectedNode}
             />
           </div>
