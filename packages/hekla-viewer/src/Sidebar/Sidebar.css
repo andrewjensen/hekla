@@ -1,4 +1,6 @@
 .Sidebar {
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
   height: 100%;
   width: 100%;
@@ -6,6 +8,12 @@
   background-color: #ffffff;
 }
 
-.Sidebar-content {
-  padding: 15px;
+.Sidebar > .list-container {
+  flex: 1;
+  overflow: hidden;
+}
+
+.Sidebar > .details-container {
+  flex: 1;
+  overflow: hidden;
 }

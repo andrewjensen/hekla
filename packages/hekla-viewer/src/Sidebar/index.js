@@ -1,24 +1,29 @@
 import React, { Component } from 'react';
 import './Sidebar.css';
 
-import ScrollingPane from '../components/ScrollingPane';
+import ComponentListPane from './ComponentListPane';
+import ComponentDetailsPane from './ComponentDetailsPane';
 
 class Sidebar extends Component {
   render() {
-    const { graph, node } = this.props;
-    const nodeName = node ? node.name : 'Details';
+    const { graph, selectedNode, onSelect } = this.props;
 
     return (
       <div className="Sidebar">
-        <ScrollingPane>
-          <div className="Sidebar-content">
-            <h2>Components</h2>
 
-            {graph ? graph.components.map(c => (<div key={c.id}>{c.name}</div>)) : null}
+        <div className="list-container">
+          <ComponentListPane
+            graph={graph}
+            selectedNode={selectedNode}
+            onSelect={onSelect}
+          />
+        </div>
 
-            <h2>{nodeName}</h2>
-          </div>
-        </ScrollingPane>
+        <div className="details-container">
+          <ComponentDetailsPane
+          node={selectedNode}
+          />
+        </div>
       </div>
     );
   }
