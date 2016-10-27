@@ -28,7 +28,6 @@ class App extends Component {
         graph: data
       });
     });
-    console.log('did mount', this);
   }
 
   render() {
@@ -41,7 +40,7 @@ class App extends Component {
 
         <div className="content">
 
-          <div className="graph-container">
+          <div className="content-pane-container">
             <ContentPane
               graph={this.state.graph}
               onSelect={this._onSelectNode}

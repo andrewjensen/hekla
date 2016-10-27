@@ -15,7 +15,7 @@
   flex-direction: row;
 }
 
-.App > .content > .graph-container {
+.App > .content > .content-pane-container {
   flex: 6;
 }
 

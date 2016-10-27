@@ -1,29 +1,44 @@
 import React, { Component } from 'react';
-import { max } from 'd3-array';
+// import { max } from 'd3-array';
 import { select, event } from 'd3-selection';
 import { drag } from 'd3-drag';
-import { scaleLinear } from 'd3-scale';
+// import { scaleLinear } from 'd3-scale';
 import {
   forceSimulation,
   forceLink,
   forceManyBody,
-  forceCenter,
+  // forceCenter,
   forceX,
-  forceY
+  // forceY
 } from 'd3-force';
+
+// const debounce = require('lodash.debounce/index');
+import debounce from 'lodash.debounce';
 
 import './Graph.css';
 
 const CIRCLE_RADIUS = 14;
-const FRAME_PADDING = 30;
+// const FRAME_PADDING = 30;
 
 class Graph extends Component {
   _graphRendered = false;
+  _resizeListener = null;
+
+  componentDidMount() {
+    this.resizeSvgElement();
+    this._resizeListener = debounce(this._onDocumentResize, 100).bind(this);
+    window.addEventListener('resize', this._resizeListener);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener(this._resizeListener);
+  }
 
   componentWillReceiveProps(props) {
     const { graph: { components, componentDependencies } } = props;
 
     if (!this._graphRendered) {
+      this.resizeSvgElement();
       this.renderGraph(components, componentDependencies);
       this._graphRendered = true;
     }
@@ -31,6 +46,19 @@ class Graph extends Component {
 
   shouldComponentUpdate() {
     return false;
+  }
+
+  _onDocumentResize(event) {
+    this.resizeSvgElement();
+  }
+
+  resizeSvgElement() {
+    const { containerEl, svgEl } = this.refs;
+    const width = containerEl.offsetWidth;
+    const height = containerEl.offsetHeight;
+    select(svgEl)
+      .attr('width', width)
+      .attr('height', height);
   }
 
   render() {
@@ -62,11 +90,7 @@ class Graph extends Component {
     console.log(`Render graph: ${nodes.length} nodes, ${links.length} links`);
 
     const { containerEl, svgEl } = this.refs;
-    const width = containerEl.offsetWidth;
-    const height = containerEl.offsetHeight;
-    const svg = select(svgEl)
-      .attr('width', width)
-      .attr('height', height);
+    const svg = select(svgEl);
 
     // const levelScale = scaleLinear()
     //   .domain([0, max(nodes, d => d.level)])
@@ -75,7 +99,7 @@ class Graph extends Component {
     const simulation = forceSimulation()
       .force('link', forceLink().id(d => d.id).distance(60))
       .force('charge', forceManyBody().strength(-400).distanceMax(500))
-      .force('centerX', forceX(width / 2).strength(0.05))
+      .force('centerX', forceX(containerEl.offsetWidth / 2).strength(0.05))
       // .force('levelY', forceY().y(d => levelScale(d.level)).strength(0.2));
 
     var link = svg.append('g')
@@ -98,9 +122,7 @@ class Graph extends Component {
           .on('drag', dragged)
           .on('end', dragended));
 
-    node.on('click', (d) => {
-      this.props.onSelect && this.props.onSelect(d);
-    });
+    node.on('click', (d) => this.props.onSelect(d));
 
     node.append('title')
       .text(d => d.name);
@@ -142,12 +164,7 @@ class Graph extends Component {
     }
 
     function getFill(node) {
-      if (node.name.indexOf('external') === 0) {
-        return 'gray';
-      } else {
-        // return 'navy';
-        return '#303F9F';
-      }
+      return '#303F9F';
     }
   }
 
