@@ -3,7 +3,7 @@ import { json } from 'd3-request';
 import './App.css';
 
 import Header from './Header';
-import Graph from './Graph';
+import ContentPane from './ContentPane';
 import Sidebar from './Sidebar';
 
 const JSON_URL = 'http://localhost:8081/dependencies.json';
@@ -42,7 +42,7 @@ class App extends Component {
         <div className="content">
 
           <div className="graph-container">
-            <Graph
+            <ContentPane
               graph={this.state.graph}
               onSelect={this._onSelectNode}
             />
