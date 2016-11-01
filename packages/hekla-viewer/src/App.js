@@ -6,7 +6,7 @@ import Header from './Header';
 import ContentPane from './ContentPane';
 import Sidebar from './Sidebar';
 
-const JSON_URL = 'http://localhost:8081/dependencies.json';
+const JSON_URL = 'http://localhost:8081/hekla.json';
 
 class App extends Component {
   constructor(props, context) {

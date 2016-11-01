@@ -1,5 +1,7 @@
 'use strict';
 
+const path = require('path');
+
 const BaseLoader = require('../loaders/BaseLoader');
 const BaseParser = require('../parsers/BaseParser');
 
@@ -7,12 +9,8 @@ const ParserEngine = require('./parser-engine');
 const fsUtils = require('../utils/fs-utils');
 
 module.exports = class Analyzer {
-  constructor(config) {
-    if (!Analyzer.isValidConfig(config)) {
-      throw new Error('Invalid configuration');
-    }
-
-    this.config = config;
+  constructor(config, configPath) {
+    this.config = Analyzer.expandConfig(config, configPath);
     this.modules = [];
   }
 
@@ -94,12 +92,22 @@ module.exports = class Analyzer {
     return Promise.resolve();
   }
 
+  static expandConfig(config, configPath) {
+    if (!Analyzer.isValidConfig(config)) {
+      throw new Error('Invalid configuration');
+    }
+
+    // Merge config with defaults
+    const defaults = {
+      output: path.resolve(configPath, '..', 'hekla.json')
+    };
+    return Object.assign({}, defaults, config);
+  }
+
   static isValidConfig(config) {
     if (!config.loader || !(config.loader instanceof BaseLoader)) {
       return false;
     } else if (!config.parsers) {
-      return false;
-    } else if (!config.output) {
       return false;
     }
 
