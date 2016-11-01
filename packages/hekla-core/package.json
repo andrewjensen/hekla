@@ -10,6 +10,7 @@
   "author": "Andrew Jensen <andrewjensen90@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "async": "^2.1.2",
     "babylon": "^6.8.4",
     "camel-case": "^3.0.0",
     "dashify": "^0.2.2",

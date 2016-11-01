@@ -1,8 +1,12 @@
 'use strict';
 
+const async = require('async');
+
 const fsUtils = require('../../utils/fs-utils');
 const ParserResult = require('../../utils/parser-result');
 const DependencyGraph = require('../../utils/dependency-graph');
+
+const CONCURRENT_PARSING_LIMIT = 100;
 
 module.exports = {
   parse,
@@ -15,12 +19,33 @@ module.exports = {
  * @return {Promise<ParserResult>}
  */
 function parse(modules, parsers) {
-  return Promise.all(modules.map(module => parseModule(module, parsers)))
+  return parseModulesThrottled(modules, parsers)
     .then(resultArrays => {
       const mergedResults = mergeAnalysisResults(resultArrays);
       // console.log('    Results:', mergedResults);
       return mergedResults
     });
+}
+
+function parseModulesNormal(modules, parsers) {
+  return Promise.all(modules.map(module => parseModule(module, parsers)));
+}
+
+function parseModulesThrottled(modules, parsers) {
+  return new Promise((resolve, reject) => {
+    async.mapLimit(modules, CONCURRENT_PARSING_LIMIT,
+      (module, done) => {
+        parseModule(module, parsers)
+          .then(resultArray => done(null, resultArray))
+          .catch(err => done(err));
+      },
+      (err, resultArrays) => {
+        console.log('finished with mapLimit');
+        if (err) return reject(err);
+        else return resolve(resultArrays);
+      }
+    );
+  });
 }
 
 function buildDependencyGraph(components) {
