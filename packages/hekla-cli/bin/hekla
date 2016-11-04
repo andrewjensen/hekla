@@ -15,8 +15,9 @@ program
   .action(() => analyze());
 
 program
-  .command('view')
+  .command('view [filename]')
   .description('View a hekla dependency graph')
-  .action(() => view());
+  .option('-p, --port [port]', 'Port for the viewer server to use', 4000)
+  .action(view);
 
 program.parse(process.argv);
