@@ -2,7 +2,7 @@
 
 ## Example Usage
 
-```
+```js
 const Analyzer = require('hekla-core').Analyzer;
 const config = require('./path/to/Heklafile.js');
 
