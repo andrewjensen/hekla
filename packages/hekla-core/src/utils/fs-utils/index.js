@@ -2,11 +2,13 @@
 
 const fs = require('fs');
 const path = require('path');
+const camelCase = require('camel-case');
 
 module.exports = {
   getFileExists,
   getFileContents,
-  writeJSON
+  writeJSON,
+  getSmartModuleName
 };
 
 function getFileExists(filePath) {
@@ -37,4 +39,27 @@ function writeJSON(data, filePath) {
       resolve();
     });
   })
+}
+
+function getSmartModuleName(filePath) {
+  const pathPieces = filePath.split('/');
+  const filename = pathPieces[pathPieces.length - 1];
+  const directory = _maybeCamelCase(pathPieces[pathPieces.length - 2]);
+
+  const filePieces = filename.split('.');
+  const filenameNoExt = _maybeCamelCase(filePieces[0]);
+
+  if (filenameNoExt === 'index') {
+    return directory;
+  } else {
+    return filenameNoExt;
+  }
+}
+
+function _maybeCamelCase(name) {
+  if (name.indexOf('-')) {
+    return camelCase(name);
+  } else {
+    return name;
+  }
 }
