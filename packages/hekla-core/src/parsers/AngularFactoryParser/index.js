@@ -41,7 +41,7 @@ function getComponentDetails(callNode, module, ast) {
   return {
     name: ngUtils.getName(callNode),
     type: 'angular-factory',
-    path: '',
+    path: module.path,
     properties: {
       angularModule: ngUtils.getModuleName(callNode)
     },
