@@ -5,6 +5,7 @@ const async = require('async');
 const fsUtils = require('../../utils/fs-utils');
 const ParserResult = require('../../utils/parser-result');
 const DependencyGraph = require('../../utils/dependency-graph');
+const DefaultParser = require('../../parsers/DefaultParser');
 
 const CONCURRENT_PARSING_LIMIT = 100;
 
@@ -100,7 +101,14 @@ function parseModule(module, parsers) {
   return Promise.all(parsers.map(parser => parser.extractComponents(module)))
     .then(resultArrays => {
       // console.log('    Results for this module:', resultArrays.length);
-      return mergeAnalysisResults(resultArrays);
+      let combinedResults = mergeAnalysisResults(resultArrays);
+
+      if (combinedResults.components.length === 0 && combinedResults.errors.length === 0) {
+        // No components were found with user parsers, so use the default.
+        return (new DefaultParser()).extractComponents(module);
+      } else {
+        return combinedResults;
+      }
     });
 }
 
