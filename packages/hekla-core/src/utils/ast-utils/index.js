@@ -15,9 +15,11 @@ module.exports = {
   reduceMemberName,
   getFunctionDeclarationsByName,
   getVariableDeclarationsByName,
-  resolveRequirePath
+  resolveRequirePath,
+  getImportInfo
 };
 
+// TODO: make sync and async versions
 function parseAST(fileContents, filePath) {
   try {
     const ast = babylon.parse(fileContents, {
@@ -134,6 +136,35 @@ function resolveRequirePath(requiredPathString, modulePath) {
     cleanRequiredPath = pieces[pieces.length - 1];
   }
   return path.resolve(modulePath, '..', cleanRequiredPath);
+}
+
+function getImportInfo(ast) {
+  const es6Imports = getES6Imports(ast);
+  const commonjsImports = getCommonJSImports(ast);
+  return mergeArrays([es6Imports, commonjsImports]);
+}
+
+function getES6Imports(ast) {
+  return getNodesByType(ast, 'ImportDeclaration')
+    .filter(node => node.source.type === 'StringLiteral')
+    .map(node => ({
+      type: 'ES6',
+      value: node.source.value
+    }));
+}
+
+function getCommonJSImports(ast) {
+  return getNodesByType(ast, 'CallExpression')
+    .filter(node => node.callee.type === 'Identifier' && node.callee.name === 'require')
+    .map(node => ({
+      type: 'CommonJS',
+      value: node.arguments[0].value
+    }));
+}
+
+// TODO: copied from ParserResult... refactor to somewhere common
+function mergeArrays(arrays) {
+  return [].concat.apply([], arrays);
 }
 
 function simplifyFunctionDeclarationNode(node) {
