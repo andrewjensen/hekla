@@ -41,7 +41,6 @@ function parseModulesThrottled(modules, parsers) {
           .catch(err => done(err));
       },
       (err, resultArrays) => {
-        console.log('finished with mapLimit');
         if (err) return reject(err);
         else return resolve(resultArrays);
       }

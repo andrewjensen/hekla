@@ -50,6 +50,7 @@ module.exports = class Analyzer {
     return ParserEngine.parse(modules, parsers)
       .then(results => {
         console.log(`    Extracted ${results.components.length} components`);
+        logComponentTypes(results);
         console.log(`    Caught ${results.errors.length} errors`);
         console.log('');
         if (debug) {
@@ -120,3 +121,35 @@ module.exports = class Analyzer {
     return true;
   }
 };
+
+function logComponentTypes(parserResults) {
+  const types = getComponentTypes(parserResults);
+  const typeNamesSorted = Object.keys(types).sort();
+  const padding = Array(20).join(' ');
+  typeNamesSorted.forEach(typeName => {
+    console.log(`      ${pad(padding, typeName, false)} ${types[typeName]}`);
+  });
+}
+
+function getComponentTypes(parserResults) {
+  return parserResults.components.reduce(
+    (acc, component) => {
+      const type = component.type;
+      if (!acc[type]) acc[type] = 0;
+      acc[type]++;
+      return acc;
+    },
+    {}
+  );
+}
+
+// Courtesy of http://stackoverflow.com/a/24398129/2418448
+function pad(pad, str, padLeft) {
+  if (typeof str === 'undefined')
+    return pad;
+  if (padLeft) {
+    return (pad + str).slice(-pad.length);
+  } else {
+    return (str + pad).substring(0, pad.length);
+  }
+}
