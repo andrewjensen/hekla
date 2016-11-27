@@ -1,0 +1,17 @@
+.ComponentSearcher {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.ComponentSearcher > .content {
+  margin: 24px 48px;
+  overflow: hidden;
+  max-height: calc(100% - 48px);
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}

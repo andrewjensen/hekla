@@ -1,0 +1,36 @@
+.ComponentSearchResults {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #BDBDBD;
+}
+
+.ComponentSearchResults > .content {
+  overflow: auto;
+}
+
+.ComponentSearchResultItem {
+  border-top: 1px solid #BDBDBD;
+  padding: 16px 16px;
+  background-color: #F5F5F5;
+  cursor: pointer;
+}
+.ComponentSearchResultItem:first-child {
+  border-top: none;
+}
+.ComponentSearchResultItem:hover, .ComponentSearchResultItem.active {
+  background-color: white;
+}
+
+.ComponentSearchResultItem > .name {
+  font-size: 16px;
+  padding-bottom: 4px;
+}
+
+.ComponentSearchResultItem > .path, .ComponentSearchResultItem > .type {
+  font-size: 13px;
+}
+
+.ComponentSearchResultItem > .path {
+  padding-bottom: 4px;
+}

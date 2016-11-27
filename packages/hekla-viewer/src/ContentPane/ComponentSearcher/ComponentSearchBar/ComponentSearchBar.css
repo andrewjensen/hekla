@@ -1,0 +1,22 @@
+.ComponentSearchBar {
+  min-height: 48px;
+  height: 48px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0px 16px;
+}
+
+.ComponentSearchBar > .icon {
+  padding: 12px 0;
+  color: #BDBDBD !important;
+  cursor: pointer;
+}
+.ComponentSearchBar > .icon:hover, .ComponentSearchBar > .icon:active {
+  color: #616161 !important;
+}
+
+.ComponentSearchBar > .input {
+  flex: 1;
+  margin: 0px 8px;
+}
