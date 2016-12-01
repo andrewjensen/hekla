@@ -43,6 +43,7 @@ class App extends Component {
           <div className="content-pane-container">
             <ContentPane
               graph={this.state.graph}
+              selectedComponent={this.state.selectedNode}
               onSelect={this._onSelectNode}
             />
           </div>
