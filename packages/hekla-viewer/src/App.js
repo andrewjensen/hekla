@@ -51,7 +51,7 @@ class App extends Component {
           <div className="sidebar-container">
             <Sidebar
               graph={this.state.graph}
-              selectedNode={this.state.selectedNode}
+              selectedComponent={this.state.selectedNode}
               onSelect={this._onSelectNode}
             />
           </div>
