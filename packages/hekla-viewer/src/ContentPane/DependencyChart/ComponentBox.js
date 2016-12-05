@@ -6,7 +6,8 @@ const ComponentBox = (props) => {
     y,
     component,
     selected,
-    onSelect
+    onSelect,
+    onContextMenu
   } = props;
   const { name } = component;
   const width = 200;
@@ -14,7 +15,7 @@ const ComponentBox = (props) => {
   const textOffset = 30;
   const className = (selected ? 'ComponentBox selected' : 'ComponentBox');
   return (
-    <g className={className} onClick={() => onSelect(component)}>
+    <g className={className} onClick={() => onSelect(component)} onContextMenu={(event) => onContextMenu(event, component)}>
       <rect
         x={x}
         y={y}

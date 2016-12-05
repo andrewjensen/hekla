@@ -15,14 +15,14 @@ const ComponentDependencyArrow = (props) => {
 
 export default ComponentDependencyArrow;
 
-function straightLinesPath(fromX, fromY, toX, toY) {
-  const middleY = (fromY + toY) * 0.5;
-  return `\
-    M ${fromX} ${fromY} \
-    L ${fromX} ${middleY} \
-    L ${toX} ${middleY} \
-    L ${toX} ${toY}`;
-}
+// function straightLinesPath(fromX, fromY, toX, toY) {
+//   const middleY = (fromY + toY) * 0.5;
+//   return `\
+//     M ${fromX} ${fromY} \
+//     L ${fromX} ${middleY} \
+//     L ${toX} ${middleY} \
+//     L ${toX} ${toY}`;
+// }
 
 function curvedLinesPath(fromX, fromY, toX, toY) {
   const middleX = (fromX + toX) * 0.5;

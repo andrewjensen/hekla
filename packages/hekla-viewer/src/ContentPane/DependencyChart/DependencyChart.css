@@ -29,6 +29,7 @@
   fill: #424242; /* grey800 */
   text-anchor: middle;
   font-size: 14px;
+  user-select: none;
 }
 .ComponentBox.selected > text {
   fill: black;
@@ -39,4 +40,8 @@
   stroke: #424242; /* grey800 */
   stroke-width: 1px;
   marker-end: url(#triangle);
+}
+
+.ComponentContextMenu {
+  position: absolute;
 }

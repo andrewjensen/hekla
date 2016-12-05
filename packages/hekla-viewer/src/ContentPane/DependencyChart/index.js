@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ComponentContextMenu from './ComponentContextMenu';
 import ComponentBox from './ComponentBox';
 import ComponentDependencyArrow from './ComponentDependencyArrow';
 
@@ -8,8 +9,12 @@ export default class DependencyChart extends Component {
   constructor(props) {
     super(props);
     this._onSelect = this._onSelect.bind(this);
+    this._onContextMenu = this._onContextMenu.bind(this);
+    this._onClickBackground = this._onClickBackground.bind(this);
     this.state = {
-      subgraph: {}
+      subgraph: {},
+      contextMenuComponent: null,
+      contextMenuCoordinates: { x: 0, y: 0 }
     };
   }
 
@@ -27,11 +32,39 @@ export default class DependencyChart extends Component {
     this.props.onSelect(component);
   }
 
+  _onContextMenu(event, component) {
+    const containerOffsets = this.refs.container.getBoundingClientRect();
+    const x = (event.clientX - containerOffsets.left);
+    const y = (event.clientY - containerOffsets.top);
+    event.preventDefault();
+    this.setState({
+      contextMenuComponent: component,
+      contextMenuCoordinates: { x, y }
+    });
+  }
+
+  _onClickBackground() {
+    // Close the context menu
+    this.setState({
+      contextMenuComponent: null
+    });
+  }
+
   render() {
-    const { selectedComponent } = this.props;
-    const { components } = this.props;
+    const { components, selectedComponent } = this.props;
+    const { contextMenuComponent, contextMenuCoordinates } = this.state;
     return (
-      <div className="DependencyChart">
+      <div ref="container" className="DependencyChart" onClick={this._onClickBackground}>
+        {!contextMenuComponent ? null : (
+          <ComponentContextMenu
+            component={contextMenuComponent}
+            x={contextMenuCoordinates.x}
+            y={contextMenuCoordinates.y}
+            onExpandDependants={() => console.log('expand dependants!')}
+            onExpandDependencies={() => console.log('expand dependencies!')}
+            onRemove={() => console.log('remove!')}
+          />
+        )}
         <svg>
           <marker id="triangle"
             viewBox="0 0 10 10" refX="10" refY="5"
@@ -46,6 +79,7 @@ export default class DependencyChart extends Component {
             component={components[0]}
             selected={selectedComponent === components[0]}
             onSelect={this._onSelect}
+            onContextMenu={this._onContextMenu}
           />
           <ComponentBox
             x={48}
@@ -53,6 +87,7 @@ export default class DependencyChart extends Component {
             component={components[1]}
             selected={selectedComponent === components[1]}
             onSelect={this._onSelect}
+            onContextMenu={this._onContextMenu}
           />
           <ComponentBox
             x={298}
@@ -60,6 +95,7 @@ export default class DependencyChart extends Component {
             component={components[3]}
             selected={selectedComponent === components[3]}
             onSelect={this._onSelect}
+            onContextMenu={this._onContextMenu}
           />
           <ComponentDependencyArrow
             from={{ x: 148, y: 150 }}
