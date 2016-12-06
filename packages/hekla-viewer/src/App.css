@@ -17,8 +17,10 @@
 
 .App > .content > .content-pane-container {
   flex: 6;
+  overflow: hidden;
 }
 
 .App > .content > .sidebar-container {
   flex: 2;
+  overflow: hidden;
 }
