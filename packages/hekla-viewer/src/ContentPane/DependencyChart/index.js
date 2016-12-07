@@ -108,7 +108,12 @@ export default class DependencyChart extends Component {
 
   render() {
     const { selectedComponent } = this.props;
-    const { subgraph, contextMenuComponent, contextMenuCoordinates } = this.state;
+    const {
+      projectGraph,
+      subgraph,
+      contextMenuComponent,
+      contextMenuCoordinates
+    } = this.state;
     const subgraphNodes = subgraph.nodes.map(node => node.value);
     const subgraphLinks = subgraph.links;
     return (
@@ -116,6 +121,8 @@ export default class DependencyChart extends Component {
         {!contextMenuComponent ? null : (
           <ComponentContextMenu
             component={contextMenuComponent}
+            projectGraph={projectGraph}
+            subgraph={subgraph}
             x={contextMenuCoordinates.x}
             y={contextMenuCoordinates.y}
             onExpandDependants={() => console.log('expand dependants!')}
