@@ -7,13 +7,11 @@ module.exports = class DependencyGraph {
     this.links = [];
   }
 
+  // NODES ---------------------------------------------------------------------
+
   addNode(id, value) {
     this.nodes.push(createNode(id, value));
     this.nodeMap.set(id, value);
-  }
-
-  addLink(sourceId, targetId) {
-    this.links.push(createLink(sourceId, targetId));
   }
 
   hasNode(id) {
@@ -28,6 +26,40 @@ module.exports = class DependencyGraph {
     return this.nodes.length;
   }
 
+  // LINKS ---------------------------------------------------------------------
+
+  addLink(sourceId, targetId) {
+    const foundDuplicate = this.hasLink(sourceId, targetId);
+    if (foundDuplicate) {
+      throw new Error('Cannot add the same link twice');
+    }
+    this.links.push(createLink(sourceId, targetId));
+  }
+
+  hasLink(sourceId, targetId) {
+    const link = this.getLink(sourceId, targetId);
+    return (!!link);
+  }
+
+  getLink(sourceId, targetId) {
+    return this.links.reduce(
+      (found, link) => (found ? found : (link.source === sourceId && link.target === targetId ? link : null)),
+      null
+    );
+  }
+
+  getLinksFrom(sourceId) {
+    return this.links
+      .filter(link => link.source === sourceId)
+      .sort((linkA, linkB) => linkA.target - linkB.target);
+  }
+
+  getLinksTo(targetId) {
+    return this.links
+      .filter(link => link.target === targetId)
+      .sort((linkA, linkB) => linkA.source - linkB.source);
+  }
+
   countLinks() {
     return this.links.length;
   }
@@ -35,6 +67,8 @@ module.exports = class DependencyGraph {
   // trimLinks() {
   //   this.links = this.links.filter(link => this.nodeMap.has(link.source));
   // }
+
+  // OUTPUTS -------------------------------------------------------------------
 
   serialize() {
     return {
