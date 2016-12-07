@@ -67,13 +67,14 @@ module.exports = class DependencyGraph {
         return link;
       }
     }
-
     return null;
   }
 
   getLinksFrom(sourceId) {
-    const results = [];
     const toSet = this.fromLinks.get(sourceId);
+    if (!toSet) return [];
+
+    const results = [];
     for (let link of toSet) {
       results.push(link);
     }
@@ -81,8 +82,10 @@ module.exports = class DependencyGraph {
   }
 
   getLinksTo(targetId) {
-    const results = [];
     const fromSet = this.toLinks.get(targetId);
+    if (!fromSet) return [];
+
+    const results = [];
     for (let link of fromSet) {
       results.push(link);
     }

@@ -100,6 +100,10 @@ describe('DependencyGraph', () => {
         { source: 1, target: 3 }
       ]);
     });
+    it('should work with no results', () => {
+      const graph = makeSimpleGraph();
+      expect(graph.getLinksFrom(6)).to.deep.equal([]);
+    });
   });
 
   describe('getLinksTo', () => {
@@ -122,6 +126,10 @@ describe('DependencyGraph', () => {
         { source: 1, target: 2 },
         { source: 1, target: 3 }
       ]);
+    });
+    it('should work with no results', () => {
+      const graph = makeSimpleGraph();
+      expect(graph.getLinksTo(6)).to.deep.equal([]);
     });
   });
 
