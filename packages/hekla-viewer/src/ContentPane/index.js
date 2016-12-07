@@ -17,7 +17,7 @@ class ContentPane extends Component {
         {!graph ? null : (
           <DependencyChart
             components={graph.components}
-            dependencies={graph.componentDependencies}
+            componentDependencies={graph.componentDependencies}
             selectedComponent={selectedComponent}
             onSelect={onSelect}
           />

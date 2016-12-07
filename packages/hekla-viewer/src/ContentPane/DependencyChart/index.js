@@ -3,23 +3,28 @@ import ComponentContextMenu from './ComponentContextMenu';
 import ComponentBox from './ComponentBox';
 import ComponentDependencyArrow from './ComponentDependencyArrow';
 const DependencyGraph = require('hekla-core').DependencyGraph;
+import {
+  OFFSET_X,
+  OFFSET_Y,
+  GRID_X,
+  GRID_Y
+} from './constants';
 
 import './DependencyChart.css';
 
-const OFFSET_X = 48;
-const OFFSET_Y = 100;
-const GRID_X = 250;
-const GRID_Y = 100;
 
 export default class DependencyChart extends Component {
   constructor(props) {
     super(props);
+    const { components, componentDependencies } = props;
     this._onSelect = this._onSelect.bind(this);
     this._onContextMenu = this._onContextMenu.bind(this);
     this._onClickBackground = this._onClickBackground.bind(this);
+    this._onUpdateGraph = this._onUpdateGraph.bind(this);
     this._onUpdateSelectedComponent = this._onUpdateSelectedComponent.bind(this);
     this._nextY = 0; // TODO: make this smarter
     this.state = {
+      projectGraph: createProjectGraph(components, componentDependencies),
       subgraph: new DependencyGraph(),
       contextMenuComponent: null,
       contextMenuCoordinates: { x: 0, y: 0 }
@@ -27,6 +32,10 @@ export default class DependencyChart extends Component {
   }
 
   componentWillReceiveProps(newProps) {
+    if (newProps.components !== this.props.components) {
+      this._onUpdateGraph(newProps.components, newProps.componentDependencies);
+    }
+
     if (newProps.selectedComponent !== this.props.selectedComponent) {
       this._onUpdateSelectedComponent(newProps.selectedComponent);
     }
@@ -57,11 +66,19 @@ export default class DependencyChart extends Component {
     });
   }
 
+  _onUpdateGraph(components, componentDependencies) {
+    this.setState({
+      projectGraph: createProjectGraph(components, componentDependencies),
+      subgraph: new DependencyGraph()
+    });
+  }
+
   _onUpdateSelectedComponent(component) {
     const { subgraph } = this.state;
     if (!subgraph.hasNode(component.id)) {
       // Add the node
       // Pick coordinates for the box
+      // TODO: decide based on the projectGraph
       const boxX = 0;
       const boxY = this._nextY;
       this._nextY++;
@@ -69,7 +86,12 @@ export default class DependencyChart extends Component {
       subgraph.addNode(component.id, node);
 
       // Add links to and from other nodes in the current subgraph
-      // TODO: implement
+      this.state.projectGraph.getLinksFrom(component.id)
+        .filter(link => subgraph.hasNode(link.target))
+        .forEach(link => subgraph.addLink(link.source, link.target));
+      this.state.projectGraph.getLinksTo(component.id)
+        .filter(link => subgraph.hasNode(link.source))
+        .forEach(link => subgraph.addLink(link.source, link.target));
 
       // Re-render
       console.log('new subgraph:', subgraph);
@@ -85,10 +107,10 @@ export default class DependencyChart extends Component {
   }
 
   render() {
-    const { components, selectedComponent } = this.props;
-    const { contextMenuComponent, contextMenuCoordinates } = this.state;
-    const subgraphNodes = this.state.subgraph.nodes.map(node => node.value);
-    const subgraphLinks = this.state.subgraph.links;
+    const { selectedComponent } = this.props;
+    const { subgraph, contextMenuComponent, contextMenuCoordinates } = this.state;
+    const subgraphNodes = subgraph.nodes.map(node => node.value);
+    const subgraphLinks = subgraph.links;
     return (
       <div ref="container" className="DependencyChart" onClick={this._onClickBackground}>
         {!contextMenuComponent ? null : (
@@ -121,13 +143,15 @@ export default class DependencyChart extends Component {
             />
           ))}
           {subgraphLinks.map(link => {
-            const { fromNode, toNode } = link;
-            const key = `${fromNode.component.id}-${toNode.component.id}`;
+            const { source: sourceId, target: targetId } = link;
+            const fromNode = subgraph.getNode(sourceId);
+            const toNode = subgraph.getNode(targetId);
+            const key = `${sourceId}-${targetId}`;
             return (
               <ComponentDependencyArrow
                 key={key}
-                from={{ x: fromNode.x, y: fromNode.y }}
-                to={{ x: toNode.x, y: toNode.y }}
+                fromNode={fromNode}
+                toNode={toNode}
               />
             );
           })}
@@ -137,17 +161,21 @@ export default class DependencyChart extends Component {
   }
 };
 
+/**
+ * Rebuild the dependency graph that the analyzer created.
+ * We will pull items out of this to create the visible subgraph.
+ */
+function createProjectGraph(components, componentDependencies) {
+  const projectGraph = new DependencyGraph();
+  components.forEach(component => projectGraph.addNode(component.id, component));
+  componentDependencies.forEach(link => projectGraph.addLink(link.source, link.target));
+  return projectGraph;
+}
+
 function makeNode(component, gridX, gridY) {
   return {
     x: (OFFSET_X + (gridX * GRID_X)),
     y: (OFFSET_Y + (gridY * GRID_Y)),
     component
-  };
-}
-
-function makeLink(fromNode, toNode) {
-  return {
-    fromNode,
-    toNode
   };
 }
