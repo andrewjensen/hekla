@@ -5,6 +5,8 @@ module.exports = class DependencyGraph {
     this.nodes = [];
     this.nodeMap = new Map();
     this.links = [];
+    this.fromLinks = new Map(); // Map<LinkId, Set<Link>>
+    this.toLinks = new Map(); // Map<LinkId, Set<Link>>
   }
 
   // NODES ---------------------------------------------------------------------
@@ -33,7 +35,22 @@ module.exports = class DependencyGraph {
     if (foundDuplicate) {
       throw new Error('Cannot add the same link twice');
     }
-    this.links.push(createLink(sourceId, targetId));
+
+    // Store the link in a basic array.
+    const link = createLink(sourceId, targetId);
+    this.links.push(link);
+
+    // Store the link in the fromLinks Map.
+    if (!this.fromLinks.has(sourceId)) {
+      this.fromLinks.set(sourceId, new Set());
+    }
+    this.fromLinks.get(sourceId).add(link);
+
+    // Store the link in the toLinks Map.
+    if (!this.toLinks.has(targetId)) {
+      this.toLinks.set(targetId, new Set());
+    }
+    this.toLinks.get(targetId).add(link);
   }
 
   hasLink(sourceId, targetId) {
@@ -42,22 +59,34 @@ module.exports = class DependencyGraph {
   }
 
   getLink(sourceId, targetId) {
-    return this.links.reduce(
-      (found, link) => (found ? found : (link.source === sourceId && link.target === targetId ? link : null)),
-      null
-    );
+    const toSet = this.fromLinks.get(sourceId);
+    if (!toSet) return null;
+
+    for (let link of toSet) {
+      if (link.target === targetId) {
+        return link;
+      }
+    }
+
+    return null;
   }
 
   getLinksFrom(sourceId) {
-    return this.links
-      .filter(link => link.source === sourceId)
-      .sort((linkA, linkB) => linkA.target - linkB.target);
+    const results = [];
+    const toSet = this.fromLinks.get(sourceId);
+    for (let link of toSet) {
+      results.push(link);
+    }
+    return results.sort(sortByTargetAsc);
   }
 
   getLinksTo(targetId) {
-    return this.links
-      .filter(link => link.target === targetId)
-      .sort((linkA, linkB) => linkA.source - linkB.source);
+    const results = [];
+    const fromSet = this.toLinks.get(targetId);
+    for (let link of fromSet) {
+      results.push(link);
+    }
+    return results.sort(sortBySourceAsc);
   }
 
   countLinks() {
@@ -197,6 +226,14 @@ function createLink(sourceId, targetId) {
     source: sourceId,
     target: targetId
   };
+}
+
+function sortBySourceAsc(linkA, linkB) {
+  return (linkA.source - linkB.source);
+}
+
+function sortByTargetAsc(linkA, linkB) {
+  return (linkA.target - linkB.target);
 }
 
 // function getChildModules(moduleMap, links, currentModule) {
