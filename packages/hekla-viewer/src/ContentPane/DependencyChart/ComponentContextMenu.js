@@ -21,10 +21,15 @@ const ComponentContextMenu = (props) => {
     onRemove
   } = props;
   const { id } = component;
+
   const totalDependantCount = projectGraph.getLinksTo(id).length;
   const visibleDependantCount = subgraph.getLinksTo(id).length;
+  const canExpandDependants = (totalDependantCount - visibleDependantCount > 0);
+
   const totalDependencyCount = projectGraph.getLinksFrom(id).length;
   const visibleDependencyCount = subgraph.getLinksFrom(id).length;
+  const canExpandDependencies = (totalDependencyCount - visibleDependencyCount > 0);
+
   const style = {
     left: (x + OFFSET_X),
     top: y
@@ -33,21 +38,23 @@ const ComponentContextMenu = (props) => {
     <div className="ComponentContextMenu" style={style}>
       <Paper zDepth={2}>
         <Menu desktop={true}>
-          {(totalDependantCount - visibleDependantCount > 0 ? (
+          {(canExpandDependants ? (
             <MenuItem
               primaryText={`Expand dependants (${totalDependantCount})`}
               leftIcon={<ArrowUpward />}
               onTouchTap={onExpandDependants}
             />
           ) : null)}
-          {(totalDependencyCount - visibleDependencyCount > 0 ? (
+          {(canExpandDependencies ? (
             <MenuItem
               primaryText={`Expand dependencies (${totalDependencyCount})`}
               leftIcon={<ArrowDownward />}
               onTouchTap={onExpandDependencies}
             />
           ) : null)}
-          <Divider />
+          {(canExpandDependants && canExpandDependencies) ? (
+            <Divider />
+          ) : null}
           <MenuItem
             primaryText="Remove"
             leftIcon={<Delete />}
