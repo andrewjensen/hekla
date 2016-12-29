@@ -22,6 +22,9 @@ export default class DependencyChart extends Component {
     this._onClickBackground = this._onClickBackground.bind(this);
     this._onUpdateGraph = this._onUpdateGraph.bind(this);
     this._onUpdateSelectedComponent = this._onUpdateSelectedComponent.bind(this);
+    this._onExpandDependants = this._onExpandDependants.bind(this);
+    this._onExpandDependencies = this._onExpandDependencies.bind(this);
+    this._addComponent = this._addComponent.bind(this);
     this._nextY = 0; // TODO: make this smarter
     this.state = {
       projectGraph: createProjectGraph(components, componentDependencies),
@@ -76,27 +79,70 @@ export default class DependencyChart extends Component {
   _onUpdateSelectedComponent(component) {
     const { subgraph } = this.state;
     if (!subgraph.hasNode(component.id)) {
-      // Add the node
       // Pick coordinates for the box
       // TODO: decide based on the projectGraph
       const boxX = 0;
       const boxY = this._nextY;
       this._nextY++;
-      const node = makeNode(component, boxX, boxY);
-      subgraph.addNode(component.id, node);
-
-      // Add links to and from other nodes in the current subgraph
-      this.state.projectGraph.getLinksFrom(component.id)
-        .filter(link => subgraph.hasNode(link.target))
-        .forEach(link => subgraph.addLink(link.source, link.target));
-      this.state.projectGraph.getLinksTo(component.id)
-        .filter(link => subgraph.hasNode(link.source))
-        .forEach(link => subgraph.addLink(link.source, link.target));
+      this._addComponent(component, boxX, boxY);
 
       // Re-render
       console.log('new subgraph:', subgraph);
       this.forceUpdate();
     }
+  }
+
+  _onExpandDependants(component) {
+    const { subgraph, projectGraph } = this.state;
+    const dependantIds = projectGraph.getLinksTo(component.id)
+      .map(link => link.source)
+      .filter(id => !subgraph.hasNode(id));
+      // TODO: decide coordinates based on the projectGraph
+    let boxX = 0;
+    const boxY = this._nextY;
+    dependantIds.forEach(id => {
+      const dependantComponent = projectGraph.getNode(id);
+      this._addComponent(dependantComponent, boxX, boxY);
+      boxX++;
+    });
+
+    // Re-render
+    console.log('new subgraph:', subgraph);
+    this.forceUpdate();
+  }
+
+  _onExpandDependencies(component) {
+    const { subgraph, projectGraph } = this.state;
+    const dependencyIds = projectGraph.getLinksFrom(component.id)
+      .map(link => link.target)
+      .filter(id => !subgraph.hasNode(id));
+      // TODO: decide coordinates based on the projectGraph
+    let boxX = 0;
+    const boxY = this._nextY;
+    dependencyIds.forEach(id => {
+      const dependencyComponent = projectGraph.getNode(id);
+      this._addComponent(dependencyComponent, boxX, boxY);
+      boxX++;
+    });
+
+    // Re-render
+    console.log('new subgraph:', subgraph);
+    this.forceUpdate();
+  }
+
+  _addComponent(component, boxX, boxY) {
+    const { subgraph } = this.state;
+    // Add the node
+    const node = makeNode(component, boxX, boxY);
+    subgraph.addNode(component.id, node);
+
+    // Add links to and from other nodes in the current subgraph
+    this.state.projectGraph.getLinksFrom(component.id)
+      .filter(link => subgraph.hasNode(link.target))
+      .forEach(link => subgraph.addLink(link.source, link.target));
+    this.state.projectGraph.getLinksTo(component.id)
+      .filter(link => subgraph.hasNode(link.source))
+      .forEach(link => subgraph.addLink(link.source, link.target));
   }
 
   _onClickBackground() {
@@ -125,8 +171,8 @@ export default class DependencyChart extends Component {
             subgraph={subgraph}
             x={contextMenuCoordinates.x}
             y={contextMenuCoordinates.y}
-            onExpandDependants={() => console.log('expand dependants!')}
-            onExpandDependencies={() => console.log('expand dependencies!')}
+            onExpandDependants={() => this._onExpandDependants(contextMenuComponent)}
+            onExpandDependencies={() => this._onExpandDependencies(contextMenuComponent)}
             onRemove={() => console.log('remove!')}
           />
         )}
