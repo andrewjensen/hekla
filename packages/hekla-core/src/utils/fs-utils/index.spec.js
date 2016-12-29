@@ -29,7 +29,7 @@ describe('fsUtils', () => {
 
     it('should handle a module named app.js', () => {
       const filePath = '/path/to/normalModule/app.js';
-      expect(fsUtils.getSmartModuleName(filePath)).to.equal('normalModule');
+      expect(fsUtils.getSmartModuleName(filePath)).to.equal('normalModuleApp');
     });
 
   });
