@@ -28,6 +28,31 @@ module.exports = class DependencyGraph {
     return this.nodes.length;
   }
 
+  removeNode(id) {
+    // Delete the node itself
+    this.nodeMap.delete(id);
+    this.nodes = this.nodes.filter(n => n.id !== id);
+
+    // Delete the links to and from the node too
+    this.links = this.links.filter(l => l.source !== id && l.target !== id);
+    this.fromLinks.delete(id);
+    this.fromLinks.forEach((fromSet) => {
+      fromSet.forEach((link) => {
+        if (link.target === id) {
+          fromSet.delete(link);
+        }
+      });
+    });
+    this.toLinks.delete(id);
+    this.toLinks.forEach((toSet) => {
+      toSet.forEach((link) => {
+        if (link.source === id) {
+          toSet.delete(link);
+        }
+      });
+    });
+  }
+
   // LINKS ---------------------------------------------------------------------
 
   addLink(sourceId, targetId) {

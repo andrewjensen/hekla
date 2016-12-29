@@ -37,6 +37,25 @@ describe('DependencyGraph', () => {
 
   });
 
+  describe('removeNode', () => {
+    it('should remove nodes', () => {
+      const graph = makeSimpleGraph();
+      graph.removeNode(3);
+      expect(graph.hasNode(3)).to.be.false;
+      expect(graph.getNode(3)).to.be.undefined;
+    });
+    it('should clean up links to and from the removed node', () => {
+      const graph = makeSimpleGraph();
+      graph.removeNode(3);
+      expect(graph.countLinks()).to.equal(1);
+      expect(graph.getLinksFrom(1)).to.deep.equal([
+        { source: 1, target: 2 }
+      ]);
+      expect(graph.getLinksFrom(2)).to.deep.equal([]);
+      expect(graph.getLinksTo(3)).to.deep.equal([]);
+    });
+  });
+
   // LINKS ---------------------------------------------------------------------
 
   describe('addLink', () => {
