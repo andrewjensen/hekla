@@ -44,16 +44,6 @@ export default class DependencyChart extends Component {
     }
   }
 
-  /**
-   * TODO:
-   * Make a subgraph, initialized to empty
-   * As components are searched, add them to the graph
-   * Eventually this will happen in a state manager
-   *
-   * On add component:
-   * add links between new component and pre-existing components
-   */
-
   _onSelect(component) {
     this.props.onSelect(component);
   }
