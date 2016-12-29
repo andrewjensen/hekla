@@ -5,15 +5,15 @@ module.exports = class DependencyGraph {
     this.nodes = [];
     this.nodeMap = new Map();
     this.links = [];
+    this.fromLinks = new Map(); // Map<LinkId, Set<Link>>
+    this.toLinks = new Map(); // Map<LinkId, Set<Link>>
   }
+
+  // NODES ---------------------------------------------------------------------
 
   addNode(id, value) {
     this.nodes.push(createNode(id, value));
     this.nodeMap.set(id, value);
-  }
-
-  addLink(sourceId, targetId) {
-    this.links.push(createLink(sourceId, targetId));
   }
 
   hasNode(id) {
@@ -28,6 +28,95 @@ module.exports = class DependencyGraph {
     return this.nodes.length;
   }
 
+  removeNode(id) {
+    // Delete the node itself
+    this.nodeMap.delete(id);
+    this.nodes = this.nodes.filter(n => n.id !== id);
+
+    // Delete the links to and from the node too
+    this.links = this.links.filter(l => l.source !== id && l.target !== id);
+    this.fromLinks.delete(id);
+    this.fromLinks.forEach((fromSet) => {
+      fromSet.forEach((link) => {
+        if (link.target === id) {
+          fromSet.delete(link);
+        }
+      });
+    });
+    this.toLinks.delete(id);
+    this.toLinks.forEach((toSet) => {
+      toSet.forEach((link) => {
+        if (link.source === id) {
+          toSet.delete(link);
+        }
+      });
+    });
+  }
+
+  // LINKS ---------------------------------------------------------------------
+
+  addLink(sourceId, targetId) {
+    const foundDuplicate = this.hasLink(sourceId, targetId);
+    if (foundDuplicate) {
+      throw new Error('Cannot add the same link twice');
+    }
+
+    // Store the link in a basic array.
+    const link = createLink(sourceId, targetId);
+    this.links.push(link);
+
+    // Store the link in the fromLinks Map.
+    if (!this.fromLinks.has(sourceId)) {
+      this.fromLinks.set(sourceId, new Set());
+    }
+    this.fromLinks.get(sourceId).add(link);
+
+    // Store the link in the toLinks Map.
+    if (!this.toLinks.has(targetId)) {
+      this.toLinks.set(targetId, new Set());
+    }
+    this.toLinks.get(targetId).add(link);
+  }
+
+  hasLink(sourceId, targetId) {
+    const link = this.getLink(sourceId, targetId);
+    return (!!link);
+  }
+
+  getLink(sourceId, targetId) {
+    const toSet = this.fromLinks.get(sourceId);
+    if (!toSet) return null;
+
+    for (let link of toSet) {
+      if (link.target === targetId) {
+        return link;
+      }
+    }
+    return null;
+  }
+
+  getLinksFrom(sourceId) {
+    const toSet = this.fromLinks.get(sourceId);
+    if (!toSet) return [];
+
+    const results = [];
+    for (let link of toSet) {
+      results.push(link);
+    }
+    return results.sort(sortByTargetAsc);
+  }
+
+  getLinksTo(targetId) {
+    const fromSet = this.toLinks.get(targetId);
+    if (!fromSet) return [];
+
+    const results = [];
+    for (let link of fromSet) {
+      results.push(link);
+    }
+    return results.sort(sortBySourceAsc);
+  }
+
   countLinks() {
     return this.links.length;
   }
@@ -35,6 +124,8 @@ module.exports = class DependencyGraph {
   // trimLinks() {
   //   this.links = this.links.filter(link => this.nodeMap.has(link.source));
   // }
+
+  // OUTPUTS -------------------------------------------------------------------
 
   serialize() {
     return {
@@ -163,6 +254,14 @@ function createLink(sourceId, targetId) {
     source: sourceId,
     target: targetId
   };
+}
+
+function sortBySourceAsc(linkA, linkB) {
+  return (linkA.source - linkB.source);
+}
+
+function sortByTargetAsc(linkA, linkB) {
+  return (linkA.target - linkB.target);
 }
 
 // function getChildModules(moduleMap, links, currentModule) {

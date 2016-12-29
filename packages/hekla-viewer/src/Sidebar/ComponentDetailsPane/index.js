@@ -7,17 +7,17 @@ import './ComponentDetailsPane.css';
 
 class ComponentDetailsPane extends Component {
   render() {
-    const { node } = this.props;
+    const { component } = this.props;
 
-    if (node) {
+    if (component) {
       return (
         <div className="ComponentDetailsPane">
           <div className="ComponentDetailsPane-title">
-            <PaneTitle text={node.name} />
+            <PaneTitle text={component.name} />
           </div>
           <div className="ComponentDetailsPane-content">
             <ScrollingPane>
-              <pre>{JSON.stringify(node, null, 2)}</pre>
+              <pre>{JSON.stringify(component, null, 2)}</pre>
             </ScrollingPane>
           </div>
         </div>

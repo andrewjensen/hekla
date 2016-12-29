@@ -8,11 +8,6 @@
   background-color: #ffffff;
 }
 
-.Sidebar > .list-container {
-  flex: 1;
-  overflow: hidden;
-}
-
 .Sidebar > .details-container {
   flex: 1;
   overflow: hidden;
