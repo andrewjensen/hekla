@@ -24,6 +24,7 @@ export default class DependencyChart extends Component {
     this._onUpdateSelectedComponent = this._onUpdateSelectedComponent.bind(this);
     this._onExpandDependants = this._onExpandDependants.bind(this);
     this._onExpandDependencies = this._onExpandDependencies.bind(this);
+    this._onRemove = this._onRemove.bind(this);
     this._addComponent = this._addComponent.bind(this);
     this._nextY = 0; // TODO: make this smarter
     this.state = {
@@ -120,6 +121,10 @@ export default class DependencyChart extends Component {
     this.forceUpdate();
   }
 
+  _onRemove(component) {
+    this._removeComponent(component);
+  }
+
   _addComponent(component, boxX, boxY) {
     const { subgraph } = this.state;
     // Add the node
@@ -133,6 +138,12 @@ export default class DependencyChart extends Component {
     this.state.projectGraph.getLinksTo(component.id)
       .filter(link => subgraph.hasNode(link.source))
       .forEach(link => subgraph.addLink(link.source, link.target));
+  }
+
+  _removeComponent(component) {
+    const { subgraph } = this.state;
+    subgraph.removeNode(component.id);
+    this.forceUpdate();
   }
 
   _onClickBackground() {
@@ -163,7 +174,7 @@ export default class DependencyChart extends Component {
             y={contextMenuCoordinates.y}
             onExpandDependants={() => this._onExpandDependants(contextMenuComponent)}
             onExpandDependencies={() => this._onExpandDependencies(contextMenuComponent)}
-            onRemove={() => console.log('remove!')}
+            onRemove={() => this._onRemove(contextMenuComponent)}
           />
         )}
         <svg>
