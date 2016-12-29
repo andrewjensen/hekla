@@ -49,7 +49,7 @@ function getSmartModuleName(filePath) {
   const filePieces = filename.split('.');
   const filenameNoExt = _maybeCamelCase(filePieces[0]);
 
-  if (filenameNoExt === 'index') {
+  if (filenameNoExt === 'index' || filenameNoExt === 'app') {
     return directory;
   } else {
     return filenameNoExt;
