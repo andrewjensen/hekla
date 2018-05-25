@@ -10,6 +10,7 @@ module.exports = {
   filterNodes,
   isPromiseCall,
   isASTNode,
+  looksLike,
   getDeepProperty,
   reduceCallName,
   reduceMemberName,
@@ -40,13 +41,37 @@ function filterNodes(tree, filterFunction) {
 }
 
 function isPromiseCall(callExpNode) {
-  return (callExpNode.callee.property &&
-    callExpNode.callee.property.type === 'Identifier' &&
-    callExpNode.callee.property.name === 'then');
+  return looksLike(callExpNode, {
+    callee: {
+      property: {
+        type: 'Identifier',
+        name: 'then'
+      }
+    }
+  });
 }
 
 function isASTNode(value, key, parent) {
   return (value && typeof value === 'object' && value.type);
+}
+
+function looksLike(a, b) {
+  return (
+    a &&
+    b &&
+    Object.keys(b).every(bKey => {
+      const bVal = b[bKey]
+      const aVal = a[bKey]
+      if (typeof bVal === 'function') {
+        return bVal(aVal)
+      }
+      return isPrimitive(bVal) ? bVal === aVal : looksLike(aVal, bVal)
+    })
+  )
+}
+
+function isPrimitive(val) {
+  return val == null || /^[sbn]/.test(typeof val)
 }
 
 /**
