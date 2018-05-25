@@ -41,9 +41,14 @@ function filterNodes(tree, filterFunction) {
 }
 
 function isPromiseCall(callExpNode) {
-  return (callExpNode.callee.property &&
-    callExpNode.callee.property.type === 'Identifier' &&
-    callExpNode.callee.property.name === 'then');
+  return looksLike(callExpNode, {
+    callee: {
+      property: {
+        type: 'Identifier',
+        name: 'then'
+      }
+    }
+  });
 }
 
 function isASTNode(value, key, parent) {

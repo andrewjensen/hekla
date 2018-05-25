@@ -5,6 +5,8 @@ const dashify = require('dashify');
 const astUtils = require('../ast-utils');
 const fsUtils = require('../fs-utils');
 
+const { looksLike } = astUtils;
+
 module.exports = {
   getName,
   getKebabCaseName,
@@ -30,10 +32,21 @@ function getKebabCaseName(camelCaseName) {
 }
 
 function getModuleName(callNode) {
-  if (callNode.callee.type === 'MemberExpression' &&
-      callNode.callee.object.type === 'CallExpression' &&
-      callNode.callee.object.callee.property.name === 'module') {
-
+  if (
+    looksLike(callNode, {
+      callee: {
+        type: 'MemberExpression',
+        object: {
+          type: 'CallExpression',
+          callee: {
+            property: {
+              name: 'module'
+            }
+          }
+        }
+      }
+    })
+  ) {
     const ngModuleCallNode = callNode.callee.object;
     return ngModuleCallNode.arguments[0].value;
   } else {
@@ -69,12 +82,18 @@ function getDefinitionFunction(callNode, ast) {
   // Reduce it.
   let definitionFunction;
 
-  if (possibleDefinitionFunction.type === 'ArrayExpression' &&
-      possibleDefinitionFunction.elements[possibleDefinitionFunction.elements.length - 1].type === 'FunctionExpression'
+  if (
+    looksLike(possibleDefinitionFunction, {
+      type: 'ArrayExpression',
+      elements: (arr) => looksLike(arr[arr.length - 1], {
+        type: 'FunctionExpression'
+      })
+    })
   ) {
     // Angular DI syntax
-    return possibleDefinitionFunction.elements[possibleDefinitionFunction.elements.length - 1];
-  } else if (possibleDefinitionFunction.type === 'FunctionExpression' || possibleDefinitionFunction.type === 'FunctionDeclaration') {
+    const elements = possibleDefinitionFunction.elements;
+    return elements[elements.length - 1];
+  } else if (['FunctionExpression', 'FunctionDeclaration'].includes(possibleDefinitionFunction.type)) {
     // Standard function
     return possibleDefinitionFunction;
   } else {
@@ -85,7 +104,14 @@ function getDefinitionFunction(callNode, ast) {
 // Loading templates
 
 function getTemplateInfo(templateProperty, templateUrlProperty, filePath, ast) {
-  if (templateProperty && templateProperty.type === 'CallExpression' && templateProperty.callee.name === 'require') {
+  if (
+    looksLike(templateProperty, {
+      type: 'CallExpression',
+      callee: {
+        name: 'require'
+      }
+    })
+  ) {
     // Required template file
     const requiredPath = templateProperty.arguments[0].value;
     const templatePath = astUtils.resolveRequirePath(requiredPath, filePath);
