@@ -14,7 +14,7 @@ module.exports = class HeklaWebpackPlugin {
     this.queue = asyncLib.queue(this.resourceWorker.bind(this), WORKER_COUNT);
     this.queue.drain = this.onQueueDrain.bind(this);
     this.queueWorking = true;
-    this.queueDrainResolve = null;
+    this.queueDrainResolver = null;
     this.queueDrainRejecter = null;
   }
 
