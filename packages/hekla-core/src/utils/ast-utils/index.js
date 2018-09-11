@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const babylon = require('babylon');
+const babelParser = require('@babel/parser');
 const walk = require('tree-walk');
 
 module.exports = {
@@ -23,8 +23,15 @@ module.exports = {
 // TODO: make sync and async versions
 function parseAST(fileContents, filePath) {
   try {
-    const ast = babylon.parse(fileContents, {
-      sourceType: 'module'
+    const ast = babelParser.parse(fileContents, {
+      sourceType: 'module',
+      plugins: [
+        'objectRestSpread',
+        'dynamicImport',
+        'classProperties',
+        'jsx',
+        'typescript',
+      ]
     });
     return Promise.resolve(ast);
   } catch (err) {

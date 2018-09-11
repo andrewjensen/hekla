@@ -1,6 +1,10 @@
 const asyncLib = require('async');
 const chalk = require('chalk');
 const StickyTerminalDisplay = require('sticky-terminal-display');
+const {
+  parseAST,
+  getImportInfo
+} = require('hekla-core').astUtils;
 
 const WORKER_COUNT = 5;
 
@@ -16,6 +20,10 @@ module.exports = class HeklaWebpackPlugin {
     this.queueWorking = true;
     this.queueDrainResolver = null;
     this.queueDrainRejecter = null;
+    this.summary = {
+      completed: 0,
+      errors: 0
+    };
   }
 
   // Webpack lifecycle hooks
@@ -53,6 +61,8 @@ module.exports = class HeklaWebpackPlugin {
       this.setupRenderers();
     }
 
+    this.printSummary();
+
     this.queue.push(makeTask(moduleName, sanitizedResource));
   }
 
@@ -89,18 +99,37 @@ module.exports = class HeklaWebpackPlugin {
     const rendererId = (this.workerRenderers.indexOf(renderer) + 1);
 
     // TODO: truncate the moduleName if it is too long for the message to show on a single line
-    renderer.write(`${chalk.bold(`Worker ${rendererId}`)}: ${moduleName}`);
+    renderer.write(`  ${chalk.bold(`Worker ${rendererId}`)}: ${moduleName}`);
+
+    let result = null;
 
     readFile(this.inputFileSystem, resource)
       .then(contents => {
         const lines = contents.split('\n').length;
-        this.results.push(makeResult(moduleName, lines));
+        result = makeResult(moduleName, lines);
+        if (resource.match(/\.[jt]sx?$/)) {
+          return parseAST(contents)
+            .then(ast => {
+              const imports = getImportInfo(ast);
+              result.imports = imports;
+            });
+        } else {
+          return Promise.resolve();
+        }
+      })
+      .then(() => {
+        this.results.push(result);
         this.freeRenderer(renderer);
+        this.summary.completed++;
+        this.printSummary();
         done();
       })
       .catch(err => {
-        console.error('Unable to read file!!!', resource);
+        result.error = err;
+        this.results.push(result);
         this.freeRenderer(renderer);
+        this.summary.errors++;
+        this.printSummary();
         done(err);
       });
   }
@@ -126,13 +155,23 @@ module.exports = class HeklaWebpackPlugin {
   // Rendering status updates
 
   setupRenderers() {
+    const display = new StickyTerminalDisplay();
+
+    this.summaryRenderer = display.getLineRenderer();
+
     this.workerRenderers = [];
     this.workerRendererUsage = new Set();
-    const display = new StickyTerminalDisplay();
     for (let i = 0; i < WORKER_COUNT; i++) {
       const renderer = display.getLineRenderer();
       this.workerRenderers.push(renderer);
     }
+  }
+
+  printSummary() {
+    const { completed, errors } = this.summary;
+    const processed = completed + errors;
+    const found = this.foundResources.size;
+    this.summaryRenderer.write(`HeklaWebpackPlugin: processed ${processed}/${found} modules with ${errors} errors`);
   }
 
   assignRenderer() {
