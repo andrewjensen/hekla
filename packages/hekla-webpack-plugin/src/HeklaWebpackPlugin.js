@@ -4,8 +4,7 @@ const StickyTerminalDisplay = require('sticky-terminal-display');
 const Analyzer = require('./Analyzer');
 const Module = require('./Module');
 const {
-  parseAST,
-  getImportInfo
+  parseAST
 } = require('hekla-core').astUtils;
 
 const WORKER_COUNT = 5;
@@ -140,8 +139,7 @@ module.exports = class HeklaWebpackPlugin {
         if (resource.match(/\.[jt]sx?$/)) {
           return parseAST(contents)
             .then(ast => {
-              const imports = getImportInfo(ast);
-              module.imports = imports;
+              this.analyzer.processJSModuleAST(module, ast);
             });
         } else {
           return Promise.resolve();
