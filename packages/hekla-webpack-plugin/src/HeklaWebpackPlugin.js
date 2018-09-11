@@ -1,6 +1,8 @@
 const asyncLib = require('async');
 const chalk = require('chalk');
 const StickyTerminalDisplay = require('sticky-terminal-display');
+const Analyzer = require('./Analyzer');
+const Module = require('./Module');
 const {
   parseAST,
   getImportInfo
@@ -11,6 +13,8 @@ const WORKER_COUNT = 5;
 module.exports = class HeklaWebpackPlugin {
   constructor(config) {
     this.config = config || {};
+    this.analyzer = new Analyzer();
+
     this.rootPath = null;
     this.results = [];
     this.foundResources = new Set();
@@ -38,6 +42,12 @@ module.exports = class HeklaWebpackPlugin {
       }
       console.log();
       throw new Error('Invalid Hekla configuration');
+    }
+
+    if (this.config.plugins) {
+      for (let plugin of this.config.plugins) {
+        plugin.apply(this.analyzer);
+      }
     }
 
     this.rootPath = compiler.context;
@@ -88,7 +98,8 @@ module.exports = class HeklaWebpackPlugin {
   emit(compilation, done) {
     this.waitForQueueDrain()
       .then(() => {
-        const analysisFile = JSON.stringify(this.results, null, 2);
+        const analysis = makeAnalysis(this.results);
+        const analysisFile = JSON.stringify(analysis, null, 2);
 
         compilation.assets['analysis.json'] = {
           source: function() {
@@ -120,32 +131,32 @@ module.exports = class HeklaWebpackPlugin {
     // TODO: truncate the moduleName if it is too long for the message to show on a single line
     renderer.write(`  ${chalk.bold(`Worker ${rendererId}`)}: ${moduleName}`);
 
-    let result = null;
+    let module = new Module(moduleName);
 
     readFile(this.inputFileSystem, resource)
       .then(contents => {
-        const lines = contents.split('\n').length;
-        result = makeResult(moduleName, lines);
+        this.analyzer.processModuleSource(module, contents);
+
         if (resource.match(/\.[jt]sx?$/)) {
           return parseAST(contents)
             .then(ast => {
               const imports = getImportInfo(ast);
-              result.imports = imports;
+              module.imports = imports;
             });
         } else {
           return Promise.resolve();
         }
       })
       .then(() => {
-        this.results.push(result);
+        this.results.push(module);
         this.freeRenderer(renderer);
         this.summary.completed++;
         this.printSummary();
         done();
       })
       .catch(err => {
-        result.error = err;
-        this.results.push(result);
+        module.setError(err);
+        this.results.push(module);
         this.freeRenderer(renderer);
         this.summary.errors++;
         this.printSummary();
@@ -228,6 +239,14 @@ function validateConfig(config) {
     }
   }
 
+  if (config.hasOwnProperty('plugins')) {
+    for (let plugin of config.plugins) {
+      if (!(plugin.apply && typeof plugin.apply === 'function')) {
+        errors.push('Plugin does not have an `apply` method');
+      }
+    }
+  }
+
   if (errors.length) {
     return errors;
   } else {
@@ -239,8 +258,11 @@ function makeTask(moduleName, resource) {
   return { moduleName, resource };
 }
 
-function makeResult(moduleName, lines) {
-  return { name: moduleName, lines };
+function makeAnalysis(modules) {
+  const analysis = {
+    modules: modules.map(module => module.serialize())
+  };
+  return analysis;
 }
 
 function getModuleName(resource, rootPath) {
