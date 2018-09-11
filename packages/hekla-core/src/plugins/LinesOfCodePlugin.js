@@ -1,7 +1,5 @@
 module.exports = class LinesOfCodePlugin {
   apply(analyzer) {
-    console.log('Applying LinesOfCodePlugin');
-
     analyzer.hooks.moduleRawSource.tap('LinesOfCodePlugin', this.moduleRawSource.bind(this));
   }
 

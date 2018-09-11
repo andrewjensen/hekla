@@ -2,8 +2,6 @@ const { getImportInfo } = require('../utils/ast-utils');
 
 module.exports = class ListImportsPlugin {
   apply(analyzer) {
-    console.log('Applying ListImportsPlugin');
-
     analyzer.hooks.moduleJSFamilyAST.tap('ListImportsPlugin', this.moduleJSFamilyAST.bind(this));
   }
 
