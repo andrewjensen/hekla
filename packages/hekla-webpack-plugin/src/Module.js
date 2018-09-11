@@ -5,6 +5,10 @@ module.exports = class Module {
     this._error = null;
   }
 
+  getName() {
+    return this._name;
+  }
+
   set(propertyName, propertyValue) {
     this._meta[propertyName] = propertyValue;
   }
