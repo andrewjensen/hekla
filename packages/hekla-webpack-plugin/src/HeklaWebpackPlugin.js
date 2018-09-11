@@ -9,7 +9,8 @@ const {
 const WORKER_COUNT = 5;
 
 module.exports = class HeklaWebpackPlugin {
-  constructor() {
+  constructor(config) {
+    this.config = config || {};
     this.rootPath = null;
     this.results = [];
     this.foundResources = new Set();
@@ -29,6 +30,16 @@ module.exports = class HeklaWebpackPlugin {
   // Webpack lifecycle hooks
 
   apply(compiler) {
+    const configErrors = validateConfig(this.config);
+    if (configErrors) {
+      console.log('Invalid Hekla configuration:');
+      for (let error of configErrors) {
+        console.log(`  ${error}`);
+      }
+      console.log();
+      throw new Error('Invalid Hekla configuration');
+    }
+
     this.rootPath = compiler.context;
 
     compiler.hooks.emit.tapAsync('AnalysisPlugin', this.emit.bind(this));
@@ -50,6 +61,14 @@ module.exports = class HeklaWebpackPlugin {
 
     if (moduleName.match(/node_modules/)) {
       return;
+    }
+
+    if (this.config.exclude) {
+      for (let excludePattern of this.config.exclude) {
+        if (moduleName.match(excludePattern)) {
+          return;
+        }
+      }
     }
 
     if (this.foundResources.has(sanitizedResource)) {
@@ -195,6 +214,24 @@ module.exports = class HeklaWebpackPlugin {
       throw new Error('Unknown renderer');
     }
     this.workerRendererUsage.delete(idx);
+  }
+}
+
+function validateConfig(config) {
+  const errors = [];
+
+  if (config.hasOwnProperty('exclude')) {
+    for (let excludePattern of config.exclude) {
+      if (!(excludePattern instanceof RegExp)) {
+        errors.push('Exclude pattern is not a regular expression');
+      }
+    }
+  }
+
+  if (errors.length) {
+    return errors;
+  } else {
+    return null;
   }
 }
 
