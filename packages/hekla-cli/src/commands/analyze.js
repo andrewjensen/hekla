@@ -17,8 +17,14 @@ module.exports = function analyze(cmd) {
 
     const analyzer = new Analyzer();
     analyzer.setInputFileSystem(fs);
-    const module = analyzer.createModule('', filePath);
-    analyzer.processModule(module);
+    const module = analyzer.createModule(filePath);
+    analyzer.processModule(module)
+      .then(() => {
+        // TODO: Save JSON
+        const analysis = analyzer.getAnalysis();
+        const json = JSON.stringify(analysis, null, 2);
+        console.log(json);
+      });
   }
 
   // let config;
