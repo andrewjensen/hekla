@@ -2,7 +2,7 @@ const asyncLib = require('async');
 const chalk = require('chalk');
 const StickyTerminalDisplay = require('sticky-terminal-display');
 const Analyzer = require('hekla-core').Analyzer;
-const Module = require('./Module');
+const Module = require('hekla-core').Module;
 const {
   parseAST
 } = require('hekla-core').astUtils;

@@ -12,7 +12,6 @@
     "async": "^2.6.1",
     "chalk": "^2.4.1",
     "hekla-core": "^0.1.0",
-    "sticky-terminal-display": "^0.1.0",
-    "tapable": "^1.0.0"
+    "sticky-terminal-display": "^0.1.0"
   }
 }
