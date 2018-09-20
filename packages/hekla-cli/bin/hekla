@@ -12,7 +12,8 @@ program
 program
   .command('analyze')
   .description('Analyze a project')
-  .action(() => analyze());
+  .option('-s, --single <filename>', 'Analyze a single file')
+  .action(analyze);
 
 program
   .command('view [filename]')
