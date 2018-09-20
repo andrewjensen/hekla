@@ -12,7 +12,6 @@ module.exports = class HeklaWebpackPlugin {
     this.analyzer = new Analyzer();
 
     this.rootPath = null;
-    this.results = [];
     this.foundResources = new Set();
 
     this.queue = asyncLib.queue(this.resourceWorker.bind(this), WORKER_COUNT);
@@ -93,7 +92,7 @@ module.exports = class HeklaWebpackPlugin {
   emit(compilation, done) {
     this.waitForQueueDrain()
       .then(() => {
-        const analysis = makeAnalysis(this.results);
+        const analysis = this.analyzer.getAnalysis();
         const analysisFile = JSON.stringify(analysis, null, 2);
 
         compilation.assets['analysis.json'] = {
@@ -130,7 +129,6 @@ module.exports = class HeklaWebpackPlugin {
 
     this.analyzer.processModule(module)
       .then(() => {
-        this.results.push(module);
         this.freeRenderer(renderer);
         this.summary.completed++;
         this.printSummary();
@@ -141,8 +139,6 @@ module.exports = class HeklaWebpackPlugin {
           console.log(err);
           process.exit(1);
         }
-        module.setError(err);
-        this.results.push(module);
         this.freeRenderer(renderer);
         this.summary.errors++;
         this.printSummary();
@@ -242,13 +238,6 @@ function validateConfig(config) {
 
 function makeTask(moduleName, resource) {
   return { moduleName, resource };
-}
-
-function makeAnalysis(modules) {
-  const analysis = {
-    modules: modules.map(module => module.serialize())
-  };
-  return analysis;
 }
 
 function getModuleName(resource, rootPath) {

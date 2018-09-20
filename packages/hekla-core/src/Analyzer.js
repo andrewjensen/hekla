@@ -8,6 +8,7 @@ const {
 module.exports = class Analyzer {
   constructor() {
     this.fs = null;
+    this.modules = [];
     this.hooks = {
       moduleRawSource: new SyncHook(['module', 'source']),
       moduleJSFamilyAST: new SyncHook(['module', 'ast'])
@@ -16,6 +17,13 @@ module.exports = class Analyzer {
 
   setInputFileSystem(fs) {
     this.fs = fs;
+  }
+
+  getAnalysis() {
+    const analysis = {
+      modules: this.modules.map(module => module.serialize())
+    };
+    return analysis;
   }
 
   createModule(moduleName, resource) {
@@ -36,6 +44,14 @@ module.exports = class Analyzer {
         } else {
           return Promise.resolve();
         }
+      })
+      .then(() => {
+        this.modules.push(module);
+      })
+      .catch(err => {
+        module.setError(err);
+        this.modules.push(module);
+        throw err;
       });
   }
 
