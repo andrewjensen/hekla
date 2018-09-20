@@ -11,7 +11,6 @@ module.exports = class HeklaWebpackPlugin {
     this.config = config || {};
     this.analyzer = new Analyzer();
 
-    this.rootPath = null;
     this.foundResources = new Set();
 
     this.queue = asyncLib.queue(this.resourceWorker.bind(this), WORKER_COUNT);
@@ -44,7 +43,7 @@ module.exports = class HeklaWebpackPlugin {
       }
     }
 
-    this.rootPath = compiler.context;
+    this.analyzer.setRootPath(compiler.context);
 
     compiler.hooks.emit.tapAsync('AnalysisPlugin', this.emit.bind(this));
 
@@ -61,7 +60,7 @@ module.exports = class HeklaWebpackPlugin {
     }
 
     const sanitizedResource = resource.replace(/\?.*$/, '');
-    const moduleName = getModuleName(sanitizedResource, this.rootPath);
+    const moduleName = this.analyzer.getModuleName(sanitizedResource);
 
     if (moduleName.match(/node_modules/)) {
       return;
@@ -125,7 +124,7 @@ module.exports = class HeklaWebpackPlugin {
     // TODO: truncate the moduleName if it is too long for the message to show on a single line
     renderer.write(`  ${chalk.bold(`Worker ${rendererId}`)}: ${moduleName}`);
 
-    let module = this.analyzer.createModule(moduleName, resource);
+    let module = this.analyzer.createModule(resource);
 
     this.analyzer.processModule(module)
       .then(() => {
@@ -238,14 +237,4 @@ function validateConfig(config) {
 
 function makeTask(moduleName, resource) {
   return { moduleName, resource };
-}
-
-function getModuleName(resource, rootPath) {
-  let fullPath = resource;
-  if (fullPath.indexOf('!') !== -1) {
-    const pieces = resource.split('!');
-    fullPath = pieces[pieces.length - 1];
-  }
-  const projectPath = fullPath.replace(rootPath, '');
-  return `.${projectPath}`;
 }

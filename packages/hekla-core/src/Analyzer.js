@@ -7,6 +7,7 @@ const {
 
 module.exports = class Analyzer {
   constructor() {
+    this.rootPath = null;
     this.fs = null;
     this.modules = [];
     this.hooks = {
@@ -15,8 +16,16 @@ module.exports = class Analyzer {
     };
   }
 
+  setRootPath(rootPath) {
+    this.rootPath = rootPath;
+  }
+
   setInputFileSystem(fs) {
     this.fs = fs;
+  }
+
+  getModuleName(resource) {
+    return getModuleName(resource, this.rootPath);
   }
 
   getAnalysis() {
@@ -26,7 +35,8 @@ module.exports = class Analyzer {
     return analysis;
   }
 
-  createModule(moduleName, resource) {
+  createModule(resource) {
+    const moduleName = this.getModuleName(resource);
     return new Module(moduleName, resource);
   }
 
@@ -75,4 +85,14 @@ function readFile(fs, filename) {
       }
     });
   });
+}
+
+function getModuleName(resource, rootPath) {
+  let fullPath = resource;
+  if (fullPath.indexOf('!') !== -1) {
+    const pieces = resource.split('!');
+    fullPath = pieces[pieces.length - 1];
+  }
+  const projectPath = fullPath.replace(rootPath, '');
+  return `.${projectPath}`;
 }
