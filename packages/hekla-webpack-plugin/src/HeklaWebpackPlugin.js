@@ -1,7 +1,10 @@
 const asyncLib = require('async');
 const chalk = require('chalk');
 const StickyTerminalDisplay = require('sticky-terminal-display');
-const Analyzer = require('hekla-core').Analyzer;
+const {
+  Analyzer,
+  ConfigValidator
+} = require('hekla-core');
 
 const WORKER_COUNT = 5;
 const BAIL_ON_ERROR = false; // for debugging purposes
@@ -27,23 +30,18 @@ module.exports = class HeklaWebpackPlugin {
   // Webpack lifecycle hooks
 
   apply(compiler) {
-    const configErrors = validateConfig(this.config);
-    if (configErrors) {
+    const validator = new ConfigValidator();
+    validator.validate(this.config);
+    if (!validator.isValid()) {
       console.log('Invalid Hekla configuration:');
-      for (let error of configErrors) {
+      for (let error of validator.getErrors()) {
         console.log(`  ${error}`);
       }
       console.log();
       throw new Error('Invalid Hekla configuration');
     }
 
-    if (this.config.plugins) {
-      for (let plugin of this.config.plugins) {
-        plugin.apply(this.analyzer);
-      }
-    }
-
-    this.analyzer.setRootPath(compiler.context);
+    this.analyzer.applyConfig(this.config);
 
     compiler.hooks.emit.tapAsync('AnalysisPlugin', this.emit.bind(this));
 
@@ -206,32 +204,6 @@ module.exports = class HeklaWebpackPlugin {
       throw new Error('Unknown renderer');
     }
     this.workerRendererUsage.delete(idx);
-  }
-}
-
-function validateConfig(config) {
-  const errors = [];
-
-  if (config.hasOwnProperty('exclude')) {
-    for (let excludePattern of config.exclude) {
-      if (!(excludePattern instanceof RegExp)) {
-        errors.push('Exclude pattern is not a regular expression');
-      }
-    }
-  }
-
-  if (config.hasOwnProperty('plugins')) {
-    for (let plugin of config.plugins) {
-      if (!(plugin.apply && typeof plugin.apply === 'function')) {
-        errors.push('Plugin does not have an `apply` method');
-      }
-    }
-  }
-
-  if (errors.length) {
-    return errors;
-  } else {
-    return null;
   }
 }
 

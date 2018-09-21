@@ -16,8 +16,14 @@ module.exports = class Analyzer {
     };
   }
 
-  setRootPath(rootPath) {
-    this.rootPath = rootPath;
+  applyConfig(config) {
+    this.rootPath = config.rootPath;
+
+    if (config.plugins) {
+      for (let plugin of config.plugins) {
+        plugin.apply(this);
+      }
+    }
   }
 
   setInputFileSystem(fs) {

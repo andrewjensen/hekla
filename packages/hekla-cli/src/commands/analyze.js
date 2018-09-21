@@ -1,22 +1,43 @@
 const fs = require('fs');
 const path = require('path');
 
-const Analyzer = require('hekla-core').Analyzer;
+const {
+  Analyzer,
+  ConfigValidator
+} = require('hekla-core');
 
 module.exports = function analyze(cmd) {
   const { single } = cmd;
+  let config;
 
-  console.log('Analyzing!');
+  const configPath = path.resolve(process.cwd(), 'config.js');
+
+  try {
+    config = require(configPath);
+  } catch (err) {
+    console.error('Unable to evaluate config file:', err.stack);
+    process.exit(1);
+  }
+
+  const validator = new ConfigValidator();
+  validator.validate(config);
+
+  if (!validator.isValid()) {
+    console.log('Invalid Hekla configuration:');
+    for (let error of validator.getErrors()) {
+      console.log(`  ${error}`);
+    }
+    console.log();
+    process.exit(1);
+  }
+
+  const analyzer = new Analyzer();
+  analyzer.setInputFileSystem(fs);
+  analyzer.applyConfig(config);
 
   if (single) {
-    console.log('Analyze just a single file:', single);
-
     const filePath = path.resolve(process.cwd(), single);
 
-    console.log('Resolved:', filePath);
-
-    const analyzer = new Analyzer();
-    analyzer.setInputFileSystem(fs);
     const module = analyzer.createModule(filePath);
     analyzer.processModule(module)
       .then(() => {
@@ -26,21 +47,4 @@ module.exports = function analyze(cmd) {
         console.log(json);
       });
   }
-
-  // let config;
-  // const configPath = getHeklafilePath();
-
-  // try {
-  //   config = require(configPath);
-  // } catch (err) {
-  //   console.error('Configuration error:', err.stack);
-  //   process.exit(1);
-  // }
-
-  // const analyzer = new Analyzer(config, configPath);
-  // analyzer.run();
 };
-
-// function getHeklafilePath() {
-//   return path.resolve(process.cwd(), 'Heklafile.js');
-// }
