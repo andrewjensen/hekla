@@ -1,23 +1,20 @@
 const asyncLib = require('async');
 const chalk = require('chalk');
 const StickyTerminalDisplay = require('sticky-terminal-display');
-const Analyzer = require('./Analyzer');
-const Module = require('./Module');
 const {
-  parseAST
-} = require('hekla-core').astUtils;
+  Analyzer,
+  ConfigValidator
+} = require('hekla-core');
 
 const WORKER_COUNT = 5;
+const BAIL_ON_ERROR = false; // for debugging purposes
 
 module.exports = class HeklaWebpackPlugin {
   constructor(config) {
     this.config = config || {};
     this.analyzer = new Analyzer();
 
-    this.rootPath = null;
-    this.results = [];
     this.foundResources = new Set();
-    this.inputFileSystem = null;
 
     this.queue = asyncLib.queue(this.resourceWorker.bind(this), WORKER_COUNT);
     this.queue.drain = this.onQueueDrain.bind(this);
@@ -33,28 +30,23 @@ module.exports = class HeklaWebpackPlugin {
   // Webpack lifecycle hooks
 
   apply(compiler) {
-    const configErrors = validateConfig(this.config);
-    if (configErrors) {
+    const validator = new ConfigValidator();
+    validator.validate(this.config);
+    if (!validator.isValid()) {
       console.log('Invalid Hekla configuration:');
-      for (let error of configErrors) {
+      for (let error of validator.getErrors()) {
         console.log(`  ${error}`);
       }
       console.log();
       throw new Error('Invalid Hekla configuration');
     }
 
-    if (this.config.plugins) {
-      for (let plugin of this.config.plugins) {
-        plugin.apply(this.analyzer);
-      }
-    }
-
-    this.rootPath = compiler.context;
+    this.analyzer.applyConfig(this.config);
 
     compiler.hooks.emit.tapAsync('AnalysisPlugin', this.emit.bind(this));
 
     compiler.hooks.compilation.tap('AnalysisPlugin', (compilation) => {
-      this.inputFileSystem = compilation.inputFileSystem;
+      this.analyzer.setInputFileSystem(compilation.inputFileSystem);
       compilation.hooks.succeedModule.tap('AnalysisPlugin', this.succeedModule.bind(this));
     });
   }
@@ -66,7 +58,7 @@ module.exports = class HeklaWebpackPlugin {
     }
 
     const sanitizedResource = resource.replace(/\?.*$/, '');
-    const moduleName = getModuleName(sanitizedResource, this.rootPath);
+    const moduleName = this.analyzer.getModuleName(sanitizedResource);
 
     if (moduleName.match(/node_modules/)) {
       return;
@@ -97,7 +89,7 @@ module.exports = class HeklaWebpackPlugin {
   emit(compilation, done) {
     this.waitForQueueDrain()
       .then(() => {
-        const analysis = makeAnalysis(this.results);
+        const analysis = this.analyzer.getAnalysis();
         const analysisFile = JSON.stringify(analysis, null, 2);
 
         compilation.assets['analysis.json'] = {
@@ -130,31 +122,20 @@ module.exports = class HeklaWebpackPlugin {
     // TODO: truncate the moduleName if it is too long for the message to show on a single line
     renderer.write(`  ${chalk.bold(`Worker ${rendererId}`)}: ${moduleName}`);
 
-    let module = new Module(moduleName);
+    let module = this.analyzer.createModule(resource);
 
-    readFile(this.inputFileSystem, resource)
-      .then(contents => {
-        this.analyzer.processModuleSource(module, contents);
-
-        if (resource.match(/\.[jt]sx?$/)) {
-          return parseAST(contents)
-            .then(ast => {
-              this.analyzer.processJSModuleAST(module, ast);
-            });
-        } else {
-          return Promise.resolve();
-        }
-      })
+    this.analyzer.processModule(module)
       .then(() => {
-        this.results.push(module);
         this.freeRenderer(renderer);
         this.summary.completed++;
         this.printSummary();
         done();
       })
       .catch(err => {
-        module.setError(err);
-        this.results.push(module);
+        if (BAIL_ON_ERROR) {
+          console.log(err);
+          process.exit(1);
+        }
         this.freeRenderer(renderer);
         this.summary.errors++;
         this.printSummary();
@@ -226,62 +207,6 @@ module.exports = class HeklaWebpackPlugin {
   }
 }
 
-function validateConfig(config) {
-  const errors = [];
-
-  if (config.hasOwnProperty('exclude')) {
-    for (let excludePattern of config.exclude) {
-      if (!(excludePattern instanceof RegExp)) {
-        errors.push('Exclude pattern is not a regular expression');
-      }
-    }
-  }
-
-  if (config.hasOwnProperty('plugins')) {
-    for (let plugin of config.plugins) {
-      if (!(plugin.apply && typeof plugin.apply === 'function')) {
-        errors.push('Plugin does not have an `apply` method');
-      }
-    }
-  }
-
-  if (errors.length) {
-    return errors;
-  } else {
-    return null;
-  }
-}
-
 function makeTask(moduleName, resource) {
   return { moduleName, resource };
-}
-
-function makeAnalysis(modules) {
-  const analysis = {
-    modules: modules.map(module => module.serialize())
-  };
-  return analysis;
-}
-
-function getModuleName(resource, rootPath) {
-  let fullPath = resource;
-  if (fullPath.indexOf('!') !== -1) {
-    const pieces = resource.split('!');
-    fullPath = pieces[pieces.length - 1];
-  }
-  const projectPath = fullPath.replace(rootPath, '');
-  return `.${projectPath}`;
-}
-
-function readFile(fs, filename) {
-  return new Promise((resolve, reject) => {
-    fs.readFile(filename, (err, buffer) => {
-      if (err) {
-        reject(err);
-      } else {
-        const contents = buffer.toString('utf-8');
-        resolve(contents);
-      }
-    });
-  });
 }
