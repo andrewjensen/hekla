@@ -1,4 +1,7 @@
-const { SyncHook } = require('tapable');
+const {
+  SyncHook,
+  AsyncSeriesHook
+} = require('tapable');
 
 const Module = require('./Module');
 const {
@@ -12,7 +15,8 @@ module.exports = class Analyzer {
     this.modules = [];
     this.hooks = {
       moduleRawSource: new SyncHook(['module', 'source']),
-      moduleJSFamilyAST: new SyncHook(['module', 'ast'])
+      moduleJSFamilyAST: new SyncHook(['module', 'ast']),
+      reporter: new AsyncSeriesHook(['analyzer', 'analysis'])
     };
   }
 
@@ -77,6 +81,10 @@ module.exports = class Analyzer {
 
   processJSModuleAST(module, ast) {
     this.hooks.moduleJSFamilyAST.call(module, ast);
+  }
+
+  processReporters(analysis) {
+    return this.hooks.reporter.promise(this, analysis);
   }
 }
 

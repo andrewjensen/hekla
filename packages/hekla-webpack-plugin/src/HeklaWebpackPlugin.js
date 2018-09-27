@@ -87,9 +87,13 @@ module.exports = class HeklaWebpackPlugin {
   }
 
   emit(compilation, done) {
+    let analysis;
     this.waitForQueueDrain()
       .then(() => {
-        const analysis = this.analyzer.getAnalysis();
+        analysis = this.analyzer.getAnalysis();
+        return this.analyzer.processReporters(analysis);
+      })
+      .then(() => {
         const analysisFile = JSON.stringify(analysis, null, 2);
 
         compilation.assets['analysis.json'] = {
