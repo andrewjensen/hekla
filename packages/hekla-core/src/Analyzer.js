@@ -5,7 +5,8 @@ const {
 
 const Module = require('./Module');
 const {
-  parseAST
+  parseAST,
+  parseHTML
 } = require('./utils/ast-utils');
 
 module.exports = class Analyzer {

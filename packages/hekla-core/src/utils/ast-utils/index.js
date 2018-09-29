@@ -2,10 +2,13 @@
 
 const path = require('path');
 const babelParser = require('@babel/parser');
+const HtmlParser = require('htmlparser2').Parser;
+const DomHandler = require('domhandler');
 const walk = require('tree-walk');
 
 module.exports = {
   parseAST,
+  parseHTML,
   getNodesByType,
   filterNodes,
   isPromiseCall,
@@ -37,6 +40,26 @@ function parseAST(fileContents, filePath) {
   } catch (err) {
     return Promise.reject(err);
   }
+}
+
+function parseHTML(source) {
+  return new Promise((resolve, reject) => {
+    try {
+      const handler = new DomHandler((err, dom) => {
+        if (err) {
+          return reject(err);
+        } else {
+          return resolve(dom);
+        }
+      });
+      const options = {};
+      const parser = new HtmlParser(handler, options);
+      parser.write(source);
+      parser.end();
+    } catch (err) {
+      reject(err);
+    }
+  });
 }
 
 function getNodesByType(tree, nodeType) {

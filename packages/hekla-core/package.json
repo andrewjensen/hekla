@@ -14,6 +14,7 @@
     "async": "^2.1.2",
     "camel-case": "^3.0.0",
     "dashify": "^0.2.2",
+    "domhandler": "^2.4.2",
     "glob": "^7.0.5",
     "htmlparser2": "^3.9.1",
     "tapable": "^1.1.0",
