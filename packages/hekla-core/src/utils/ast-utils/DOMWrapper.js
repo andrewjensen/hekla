@@ -38,30 +38,23 @@ module.exports = class DOMWrapper {
       }
     }
 
-    domWalker.preorder(this.dom, (node) => this.delegate(node, visitors));
+    domWalker.preorder(this.dom, (node) => callVisitor(node, visitors, this.dom));
+  }
+}
+
+function callVisitor(node, visitors, dom) {
+  if (node === dom) {
+    // Skip the root-level array of nodes, wait to visit each actual node
+    return;
   }
 
-  addVisitor(type, callback) {
-    if (!this.visitors[type]) {
-      this.visitors[type] = [];
-    }
-    this.visitors[type].push(callback);
+  if (!node || !node.type) {
+    throw new TypeError('Unrecognized tree node');
   }
 
-  delegate(node, visitors) {
-    if (node === this.dom) {
-      // Skip the root-level array of nodes, wait to visit each actual node
-      return;
-    }
-
-    if (!node || !node.type) {
-      throw new TypeError('Unrecognized tree node');
-    }
-
-    if (node.type === 'tag' && visitors['tag']) {
-      visitors['tag'](node);
-    } else if (node.type === 'text' && visitors['text']) {
-      visitors['text'](node);
-    }
+  if (node.type === 'tag' && visitors['tag']) {
+    visitors['tag'](node);
+  } else if (node.type === 'text' && visitors['text']) {
+    visitors['text'](node);
   }
 }
