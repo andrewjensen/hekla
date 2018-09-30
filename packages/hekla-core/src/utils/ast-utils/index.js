@@ -6,9 +6,12 @@ const HtmlParser = require('htmlparser2').Parser;
 const DomHandler = require('domhandler');
 const walk = require('tree-walk');
 
+const DOMWrapper = require('./DOMWrapper');
+
 module.exports = {
   parseAST,
   parseHTML,
+  DOMWrapper,
   getNodesByType,
   filterNodes,
   isPromiseCall,

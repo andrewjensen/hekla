@@ -6,7 +6,8 @@ const {
 const Module = require('./Module');
 const {
   parseAST,
-  parseHTML
+  parseHTML,
+  DOMWrapper
 } = require('./utils/ast-utils');
 
 module.exports = class Analyzer {
@@ -17,6 +18,7 @@ module.exports = class Analyzer {
     this.hooks = {
       moduleRawSource: new SyncHook(['module', 'source']),
       moduleJSFamilyAST: new SyncHook(['module', 'ast']),
+      moduleHTMLFamilyDOM: new SyncHook(['module', 'dom']),
       reporter: new AsyncSeriesHook(['analyzer', 'analysis'])
     };
   }
@@ -56,15 +58,7 @@ module.exports = class Analyzer {
     return readFile(this.fs, resource)
       .then(contents => {
         this.processModuleSource(module, contents);
-
-        if (resource.match(/\.[jt]sx?$/)) {
-          return parseAST(contents)
-            .then(ast => {
-              this.processJSModuleAST(module, ast);
-            });
-        } else {
-          return Promise.resolve();
-        }
+        return this.processModuleSyntaxTree(module, contents);
       })
       .then(() => {
         this.modules.push(module);
@@ -76,12 +70,27 @@ module.exports = class Analyzer {
       });
   }
 
-  processModuleSource(module, source) {
-    this.hooks.moduleRawSource.call(module, source);
+  processModuleSyntaxTree(module, contents) {
+    const resource = module.getResource();
+    if (resource.match(/\.[jt]sx?$/)) {
+      return parseAST(contents)
+        .then(ast => {
+          this.hooks.moduleJSFamilyAST.call(module, ast);
+        });
+    } else if (resource.match(/\.html$/)) {
+      return parseHTML(contents)
+        .then(dom => {
+          const domWrapper = new DOMWrapper(dom);
+          this.hooks.moduleHTMLFamilyDOM.call(module, domWrapper);
+        });
+    } else {
+      // This file type doesn't support parsing its AST.
+      return Promise.resolve();
+    }
   }
 
-  processJSModuleAST(module, ast) {
-    this.hooks.moduleJSFamilyAST.call(module, ast);
+  processModuleSource(module, source) {
+    this.hooks.moduleRawSource.call(module, source);
   }
 
   processReporters(analysis) {
