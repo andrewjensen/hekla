@@ -69,6 +69,17 @@ describe('DOMWrapper', () => {
       expect(fullText).to.equal('Hello world');
     });
 
+    it('should reject visitors for node types that do not exist', async () => {
+      const html = '<div>Hello <b>world</b></div>';
+      const dom = await parseHTML(html);
+      const wrapper = new DOMWrapper(dom);
+      expect(() => {
+        wrapper.visit({
+          truck: (node) => {}
+        });
+      }).to.throw('Invalid visitor type: truck');
+    });
+
   });
 
 });

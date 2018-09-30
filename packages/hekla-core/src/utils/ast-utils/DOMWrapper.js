@@ -1,5 +1,12 @@
 const walk = require('tree-walk');
 
+const NODE_TYPES = [
+  'tag',
+  'text',
+  'comment',
+  'directive'
+];
+
 const domWalker = walk(el => {
   // https://www.npmjs.com/package/tree-walk#custom-walkers
   if (Array.isArray(el)) {
@@ -25,6 +32,12 @@ module.exports = class DOMWrapper {
   }
 
   visit(visitors) {
+    for (let key in visitors) {
+      if (!NODE_TYPES.includes(key)) {
+        throw new TypeError(`Invalid visitor type: ${key}`);
+      }
+    }
+
     domWalker.preorder(this.dom, (node) => this.delegate(node, visitors));
   }
 
