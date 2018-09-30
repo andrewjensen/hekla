@@ -26,7 +26,6 @@ describe('DOMWrapper', () => {
           foundTags.push(node.name);
         }
       });
-      wrapper.walk();
       expect(foundTags).to.deep.equal(['div', 'b']);
     });
 
@@ -40,7 +39,6 @@ describe('DOMWrapper', () => {
           fullText += node.data;
         }
       });
-      wrapper.walk();
       expect(fullText).to.equal('Hello world');
     });
 
@@ -66,7 +64,6 @@ describe('DOMWrapper', () => {
           fullText += node.data;
         }
       });
-      wrapper.walk();
       expect(foundTags).to.deep.equal(['div', 'b']);
       expect(tagCount).to.equal(2);
       expect(fullText).to.equal('Hello world');
