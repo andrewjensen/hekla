@@ -7,6 +7,7 @@ const Module = require('./Module');
 const {
   parseAST,
   parseHTML,
+  ASTWrapper,
   DOMWrapper
 } = require('./utils/ast-utils');
 
@@ -75,7 +76,8 @@ module.exports = class Analyzer {
     if (resource.match(/\.[jt]sx?$/)) {
       return parseAST(contents)
         .then(ast => {
-          this.hooks.moduleJSFamilyAST.call(module, ast);
+          const astWrapper = new ASTWrapper(ast);
+          this.hooks.moduleJSFamilyAST.call(module, astWrapper);
         });
     } else if (resource.match(/\.html$/)) {
       return parseHTML(contents)

@@ -6,7 +6,7 @@ module.exports = class ListImportsPlugin {
   }
 
   moduleJSFamilyAST(module, ast) {
-    const imports = getImportInfo(ast);
+    const imports = getImportInfo(ast.unwrap());
     module.set('imports', imports);
   }
 }
