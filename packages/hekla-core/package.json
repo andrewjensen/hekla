@@ -11,6 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "@babel/parser": "^7.0.0",
+    "@babel/types": "^7.1.2",
     "async": "^2.1.2",
     "camel-case": "^3.0.0",
     "dashify": "^0.2.2",
