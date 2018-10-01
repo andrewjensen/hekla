@@ -75,6 +75,57 @@ const AST_FUNCTION_DECLARATION = {
 
 describe('astUtils', () => {
 
+  describe('parseHTML', () => {
+
+    it('should parse a simple HTML string', async () => {
+      const html = `<div>Hello <b>world</b></div>`;
+      const dom = await astUtils.parseHTML(html);
+
+      expect(dom).to.be.an('array');
+      expect(dom).to.have.lengthOf(1);
+
+      const div = dom[0];
+      expect(div.type).to.equal('tag');
+      expect(div.name).to.equal('div');
+      expect(div.children).to.have.lengthOf(2);
+
+      const [text, bold] = div.children;
+
+      expect(text.type).to.equal('text');
+      expect(text.data).to.equal('Hello ');
+
+      expect(bold.type).to.equal('tag');
+      expect(bold.name).to.equal('b');
+      expect(bold.children).to.have.lengthOf(1);
+
+      const world = bold.children[0];
+      expect(world.type).to.equal('text');
+      expect(world.data).to.equal('world');
+    });
+
+    it('should parse HTML with attributes', async () => {
+      const html = `<div class="special" data-special>Special</div>`;
+      const dom = await astUtils.parseHTML(html);
+
+      expect(dom).to.be.an('array');
+      expect(dom).to.have.lengthOf(1);
+
+      const div = dom[0];
+      expect(div.type).to.equal('tag');
+      expect(div.name).to.equal('div');
+      expect(div.children).to.have.lengthOf(1);
+
+      const { attribs } = div;
+      expect(attribs['class']).to.equal('special');
+      expect(attribs['data-special']).to.equal('');
+
+      const text = div.children[0];
+      expect(text.type).to.equal('text');
+      expect(text.data).to.equal('Special');
+    });
+
+  });
+
   describe('looksLike', () => {
     const { looksLike } = astUtils;
 

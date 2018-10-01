@@ -1,8 +1,14 @@
-const { SyncHook } = require('tapable');
+const {
+  SyncHook,
+  AsyncSeriesHook
+} = require('tapable');
 
 const Module = require('./Module');
 const {
-  parseAST
+  parseAST,
+  parseHTML,
+  ASTWrapper,
+  DOMWrapper
 } = require('./utils/ast-utils');
 
 module.exports = class Analyzer {
@@ -12,7 +18,9 @@ module.exports = class Analyzer {
     this.modules = [];
     this.hooks = {
       moduleRawSource: new SyncHook(['module', 'source']),
-      moduleJSFamilyAST: new SyncHook(['module', 'ast'])
+      moduleSyntaxTreeJS: new SyncHook(['module', 'ast']),
+      moduleSyntaxTreeHTML: new SyncHook(['module', 'dom']),
+      reporter: new AsyncSeriesHook(['analyzer', 'analysis'])
     };
   }
 
@@ -51,15 +59,7 @@ module.exports = class Analyzer {
     return readFile(this.fs, resource)
       .then(contents => {
         this.processModuleSource(module, contents);
-
-        if (resource.match(/\.[jt]sx?$/)) {
-          return parseAST(contents)
-            .then(ast => {
-              this.processJSModuleAST(module, ast);
-            });
-        } else {
-          return Promise.resolve();
-        }
+        return this.processModuleSyntaxTree(module, contents);
       })
       .then(() => {
         this.modules.push(module);
@@ -71,12 +71,32 @@ module.exports = class Analyzer {
       });
   }
 
+  processModuleSyntaxTree(module, contents) {
+    const resource = module.getResource();
+    if (resource.match(/\.[jt]sx?$/)) {
+      return parseAST(contents)
+        .then(ast => {
+          const astWrapper = new ASTWrapper(ast);
+          this.hooks.moduleSyntaxTreeJS.call(module, astWrapper);
+        });
+    } else if (resource.match(/\.html$/)) {
+      return parseHTML(contents)
+        .then(dom => {
+          const domWrapper = new DOMWrapper(dom);
+          this.hooks.moduleSyntaxTreeHTML.call(module, domWrapper);
+        });
+    } else {
+      // This file type doesn't support parsing its AST.
+      return Promise.resolve();
+    }
+  }
+
   processModuleSource(module, source) {
     this.hooks.moduleRawSource.call(module, source);
   }
 
-  processJSModuleAST(module, ast) {
-    this.hooks.moduleJSFamilyAST.call(module, ast);
+  processReporters(analysis) {
+    return this.hooks.reporter.promise(this, analysis);
   }
 }
 

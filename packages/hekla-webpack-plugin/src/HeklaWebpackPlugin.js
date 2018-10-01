@@ -43,7 +43,7 @@ module.exports = class HeklaWebpackPlugin {
 
     this.analyzer.applyConfig(this.config);
 
-    compiler.hooks.emit.tapAsync('AnalysisPlugin', this.emit.bind(this));
+    compiler.hooks.emit.tapPromise('AnalysisPlugin', this.emit.bind(this));
 
     compiler.hooks.compilation.tap('AnalysisPlugin', (compilation) => {
       this.analyzer.setInputFileSystem(compilation.inputFileSystem);
@@ -86,10 +86,14 @@ module.exports = class HeklaWebpackPlugin {
     this.queue.push(makeTask(moduleName, sanitizedResource));
   }
 
-  emit(compilation, done) {
-    this.waitForQueueDrain()
+  emit(compilation) {
+    let analysis;
+    return this.waitForQueueDrain()
       .then(() => {
-        const analysis = this.analyzer.getAnalysis();
+        analysis = this.analyzer.getAnalysis();
+        return this.analyzer.processReporters(analysis);
+      })
+      .then(() => {
         const analysisFile = JSON.stringify(analysis, null, 2);
 
         compilation.assets['analysis.json'] = {
@@ -100,12 +104,10 @@ module.exports = class HeklaWebpackPlugin {
             return analysisFile.length;
           }
         };
-
-        done();
       })
       .catch(err => {
         console.error('Error waiting for analysis:', err);
-        done(err);
+        throw err;
       });
   }
 
