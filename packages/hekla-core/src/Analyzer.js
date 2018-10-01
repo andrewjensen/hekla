@@ -18,8 +18,8 @@ module.exports = class Analyzer {
     this.modules = [];
     this.hooks = {
       moduleRawSource: new SyncHook(['module', 'source']),
-      moduleJSFamilyAST: new SyncHook(['module', 'ast']),
-      moduleHTMLFamilyDOM: new SyncHook(['module', 'dom']),
+      moduleSyntaxTreeJS: new SyncHook(['module', 'ast']),
+      moduleSyntaxTreeHTML: new SyncHook(['module', 'dom']),
       reporter: new AsyncSeriesHook(['analyzer', 'analysis'])
     };
   }
@@ -77,13 +77,13 @@ module.exports = class Analyzer {
       return parseAST(contents)
         .then(ast => {
           const astWrapper = new ASTWrapper(ast);
-          this.hooks.moduleJSFamilyAST.call(module, astWrapper);
+          this.hooks.moduleSyntaxTreeJS.call(module, astWrapper);
         });
     } else if (resource.match(/\.html$/)) {
       return parseHTML(contents)
         .then(dom => {
           const domWrapper = new DOMWrapper(dom);
-          this.hooks.moduleHTMLFamilyDOM.call(module, domWrapper);
+          this.hooks.moduleSyntaxTreeHTML.call(module, domWrapper);
         });
     } else {
       // This file type doesn't support parsing its AST.

@@ -2,10 +2,10 @@ const { getImportInfo } = require('../utils/ast-utils');
 
 module.exports = class ListImportsPlugin {
   apply(analyzer) {
-    analyzer.hooks.moduleJSFamilyAST.tap('ListImportsPlugin', this.moduleJSFamilyAST.bind(this));
+    analyzer.hooks.moduleSyntaxTreeJS.tap('ListImportsPlugin', this.moduleSyntaxTreeJS.bind(this));
   }
 
-  moduleJSFamilyAST(module, ast) {
+  moduleSyntaxTreeJS(module, ast) {
     const imports = getImportInfo(ast.unwrap());
     module.set('imports', imports);
   }
