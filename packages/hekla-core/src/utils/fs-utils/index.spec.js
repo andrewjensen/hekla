@@ -5,6 +5,27 @@ const fsUtils = require('./index');
 
 describe('fsUtils', () => {
 
+  describe('getModuleName', () => {
+
+    it('should remove the rootPath', () => {
+      const filePath = '/path/to/project/src/main.js';
+      const rootPath = '/path/to/project';
+      expect(fsUtils.getModuleName(filePath, rootPath)).to.equal('./src/main.js');
+    });
+
+    it('should remove webpack loaders from the front', () => {
+      const resourceRequest = 'module!/path/to/project/src/styles.css';
+      const rootPath = '/path/to/project';
+      expect(fsUtils.getModuleName(resourceRequest, rootPath)).to.equal('./src/styles.css');
+    });
+
+    it('should throw if rootPath is not specified', () => {
+      const filePath = '/path/to/project/src/main.js';
+      expect(() => fsUtils.getModuleName(filePath)).to.throw('rootPath not specified');
+    });
+
+  });
+
   describe('getSmartModuleName', () => {
 
     it('should handle a normal module name', () => {

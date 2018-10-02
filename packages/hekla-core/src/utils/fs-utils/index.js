@@ -8,6 +8,7 @@ module.exports = {
   getFileExists,
   getFileContents,
   writeJSON,
+  getModuleName,
   getSmartModuleName
 };
 
@@ -39,6 +40,19 @@ function writeJSON(data, filePath) {
       resolve();
     });
   })
+}
+
+function getModuleName(resource, rootPath) {
+  if (!rootPath) {
+    throw new Error('rootPath not specified');
+  }
+  let fullPath = resource;
+  if (fullPath.indexOf('!') !== -1) {
+    const pieces = resource.split('!');
+    fullPath = pieces[pieces.length - 1];
+  }
+  const projectPath = fullPath.replace(rootPath, '');
+  return `.${projectPath}`;
 }
 
 function getSmartModuleName(filePath) {
