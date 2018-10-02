@@ -1,10 +1,10 @@
 'use strict';
 
 const path = require('path');
-const astUtils = require('../../utils/ast-utils');
-const ngUtils = require('../../utils/ng-utils');
+const astUtils = require('../../../utils/ast-utils');
+const ngUtils = require('../../../utils/ng-utils');
 const BaseParser = require('../BaseParser');
-const ParserResult = require('../../utils/parser-result');
+const ParserResult = require('../../../utils/parser-result');
 
 module.exports = class AngularFactoryParser extends BaseParser {
   constructor() {
