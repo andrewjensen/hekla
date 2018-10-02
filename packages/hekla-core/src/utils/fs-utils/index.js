@@ -9,6 +9,7 @@ module.exports = {
   getFileContents,
   writeJSON,
   getModuleName,
+  getModuleShortName,
   getSmartModuleName
 };
 
@@ -53,6 +54,21 @@ function getModuleName(resource, rootPath) {
   }
   const projectPath = fullPath.replace(rootPath, '');
   return `.${projectPath}`;
+}
+
+function getModuleShortName(moduleName) {
+  const pathPieces = moduleName.split('/');
+  const filename = pathPieces[pathPieces.length - 1];
+  const directory = pathPieces[pathPieces.length - 2];
+
+  const filePieces = filename.split('.');
+  const filenameNoExt = filePieces[0];
+
+  if (['index', 'app'].includes(filenameNoExt)) {
+    return `${directory}/${filename}`;
+  } else {
+    return filename;
+  }
 }
 
 function getSmartModuleName(filePath) {

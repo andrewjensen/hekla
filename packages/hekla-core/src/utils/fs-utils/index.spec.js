@@ -26,6 +26,30 @@ describe('fsUtils', () => {
 
   });
 
+  describe('getModuleShortName', () => {
+
+    it('should shorten a normal module name', () => {
+      const moduleName = './src/main.js';
+      expect(fsUtils.getModuleShortName(moduleName)).to.equal('main.js');
+    });
+
+    it('should shorten a module name with extra file extensions', () => {
+      const moduleName = './src/special.thing.js';
+      expect(fsUtils.getModuleShortName(moduleName)).to.equal('special.thing.js');
+    });
+
+    it('should shorten a module named index.js', () => {
+      const moduleName = './src/my-feature/index.js';
+      expect(fsUtils.getModuleShortName(moduleName)).to.equal('my-feature/index.js');
+    });
+
+    it('should shorten a module named app.js', () => {
+      const moduleName = './src/my-feature/app.js';
+      expect(fsUtils.getModuleShortName(moduleName)).to.equal('my-feature/app.js');
+    });
+
+  });
+
   describe('getSmartModuleName', () => {
 
     it('should handle a normal module name', () => {
