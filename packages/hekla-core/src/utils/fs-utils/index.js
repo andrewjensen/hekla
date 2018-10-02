@@ -1,16 +1,12 @@
-'use strict';
-
 const fs = require('fs');
 const path = require('path');
-const camelCase = require('camel-case');
 
 module.exports = {
   getFileExists,
   getFileContents,
   writeJSON,
   getModuleName,
-  getModuleShortName,
-  getSmartModuleName
+  getModuleShortName
 };
 
 function getFileExists(filePath) {
@@ -68,30 +64,5 @@ function getModuleShortName(moduleName) {
     return `${directory}/${filename}`;
   } else {
     return filename;
-  }
-}
-
-function getSmartModuleName(filePath) {
-  const pathPieces = filePath.split('/');
-  const filename = pathPieces[pathPieces.length - 1];
-  const directory = _maybeCamelCase(pathPieces[pathPieces.length - 2]);
-
-  const filePieces = filename.split('.');
-  const filenameNoExt = _maybeCamelCase(filePieces[0]);
-
-  if (filenameNoExt === 'index') {
-    return directory;
-  } else if (filenameNoExt === 'app') {
-    return directory + 'App';
-  } else {
-    return filenameNoExt;
-  }
-}
-
-function _maybeCamelCase(name) {
-  if (name.indexOf('-')) {
-    return camelCase(name);
-  } else {
-    return name;
   }
 }
