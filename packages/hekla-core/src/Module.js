@@ -15,6 +15,9 @@ module.exports = class Module {
   }
 
   set(propertyName, propertyValue) {
+    if (propertyName === 'name') {
+      throw new Error(`Cannot change a Module's name property`);
+    }
     this._meta[propertyName] = propertyValue;
   }
 
@@ -24,8 +27,8 @@ module.exports = class Module {
 
   serialize() {
     const result = {
-      ...this._meta,
-      name: this._name
+      name: this._name,
+      ...this._meta
     };
     if (this._error) {
       result.error = this._error;

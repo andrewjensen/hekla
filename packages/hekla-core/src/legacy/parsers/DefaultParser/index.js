@@ -1,10 +1,10 @@
 'use strict';
 
 const path = require('path');
-const astUtils = require('../../utils/ast-utils');
-const fsUtils = require('../../utils/fs-utils');
+const astUtils = require('../../../utils/ast-utils');
+const fsUtils = require('../../../utils/fs-utils');
 const BaseParser = require('../BaseParser');
-const ParserResult = require('../../utils/parser-result');
+const ParserResult = require('../../../utils/parser-result');
 
 module.exports = class DefaultParser extends BaseParser {
   constructor() {
