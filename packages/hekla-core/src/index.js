@@ -4,5 +4,6 @@ module.exports = {
   ConfigValidator: require('./ConfigValidator'),
   DependencyGraph: require('./utils/dependency-graph'),
   astUtils: require('./utils/ast-utils'),
+  fsUtils: require('./utils/fs-utils'),
   plugins: require('./plugins')
 };
