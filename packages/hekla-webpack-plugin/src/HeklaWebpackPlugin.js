@@ -5,6 +5,7 @@ const {
   Analyzer,
   ConfigValidator
 } = require('hekla-core');
+const { getModuleName } = require('hekla-core').fsUtils;
 
 const WORKER_COUNT = 5;
 const BAIL_ON_ERROR = false; // for debugging purposes
@@ -58,7 +59,7 @@ module.exports = class HeklaWebpackPlugin {
     }
 
     const sanitizedResource = resource.replace(/\?.*$/, '');
-    const moduleName = this.analyzer.getModuleName(sanitizedResource);
+    const moduleName = getModuleName(sanitizedResource, this.analyzer.rootPath);
 
     if (moduleName.match(/node_modules/)) {
       return;
