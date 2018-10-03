@@ -38,10 +38,6 @@ module.exports = class Analyzer {
     this.fs = fs;
   }
 
-  getModuleName(resource) {
-    return getModuleName(resource, this.rootPath);
-  }
-
   getAnalysis() {
     const analysis = {
       modules: this.modules.map(module => module.serialize())
@@ -50,8 +46,7 @@ module.exports = class Analyzer {
   }
 
   createModule(resource) {
-    const moduleName = this.getModuleName(resource);
-    return new Module(moduleName, resource);
+    return new Module(resource, this.rootPath);
   }
 
   processModule(module) {
@@ -111,14 +106,4 @@ function readFile(fs, filename) {
       }
     });
   });
-}
-
-function getModuleName(resource, rootPath) {
-  let fullPath = resource;
-  if (fullPath.indexOf('!') !== -1) {
-    const pieces = resource.split('!');
-    fullPath = pieces[pieces.length - 1];
-  }
-  const projectPath = fullPath.replace(rootPath, '');
-  return `.${projectPath}`;
 }

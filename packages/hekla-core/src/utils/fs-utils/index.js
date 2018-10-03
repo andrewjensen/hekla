@@ -1,14 +1,12 @@
-'use strict';
-
 const fs = require('fs');
 const path = require('path');
-const camelCase = require('camel-case');
 
 module.exports = {
   getFileExists,
   getFileContents,
   writeJSON,
-  getSmartModuleName
+  getModuleName,
+  getModuleShortName
 };
 
 function getFileExists(filePath) {
@@ -41,27 +39,30 @@ function writeJSON(data, filePath) {
   })
 }
 
-function getSmartModuleName(filePath) {
-  const pathPieces = filePath.split('/');
-  const filename = pathPieces[pathPieces.length - 1];
-  const directory = _maybeCamelCase(pathPieces[pathPieces.length - 2]);
-
-  const filePieces = filename.split('.');
-  const filenameNoExt = _maybeCamelCase(filePieces[0]);
-
-  if (filenameNoExt === 'index') {
-    return directory;
-  } else if (filenameNoExt === 'app') {
-    return directory + 'App';
-  } else {
-    return filenameNoExt;
+function getModuleName(resource, rootPath) {
+  if (!rootPath) {
+    throw new Error('rootPath not specified');
   }
+  let fullPath = resource;
+  if (fullPath.indexOf('!') !== -1) {
+    const pieces = resource.split('!');
+    fullPath = pieces[pieces.length - 1];
+  }
+  const projectPath = fullPath.replace(rootPath, '');
+  return `.${projectPath}`;
 }
 
-function _maybeCamelCase(name) {
-  if (name.indexOf('-')) {
-    return camelCase(name);
+function getModuleShortName(moduleName) {
+  const pathPieces = moduleName.split('/');
+  const filename = pathPieces[pathPieces.length - 1];
+  const directory = pathPieces[pathPieces.length - 2];
+
+  const filePieces = filename.split('.');
+  const filenameNoExt = filePieces[0];
+
+  if (['index', 'app'].includes(filenameNoExt)) {
+    return `${directory}/${filename}`;
   } else {
-    return name;
+    return filename;
   }
 }
