@@ -5,9 +5,6 @@ const {
 
 const Module = require('./Module');
 const {
-  getModuleName
-} = require('./utils/fs-utils');
-const {
   parseAST,
   parseHTML,
   ASTWrapper,
@@ -49,8 +46,7 @@ module.exports = class Analyzer {
   }
 
   createModule(resource) {
-    const moduleName = getModuleName(resource, this.rootPath);
-    return new Module(moduleName, resource);
+    return new Module(resource, this.rootPath);
   }
 
   processModule(module) {

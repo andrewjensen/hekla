@@ -1,7 +1,19 @@
+const {
+  getModuleName,
+  getModuleShortName
+} = require('./utils/fs-utils');
+
+const RESERVED_PROPERTIES = [
+  'name',
+  'shortName'
+];
+
 module.exports = class Module {
-  constructor(moduleName, resource) {
-    this._name = moduleName;
+  constructor(resource, rootPath) {
     this._resource = resource;
+    this._rootPath = rootPath;
+    this._name = getModuleName(resource, rootPath);
+    this._shortName = getModuleShortName(this._name);
     this._meta = {};
     this._error = null;
   }
@@ -15,8 +27,8 @@ module.exports = class Module {
   }
 
   set(propertyName, propertyValue) {
-    if (propertyName === 'name') {
-      throw new Error(`Cannot change a Module's name property`);
+    if(RESERVED_PROPERTIES.includes(propertyName)) {
+      throw new Error(`The '${propertyName}' property is reserved`);
     }
     this._meta[propertyName] = propertyValue;
   }
@@ -28,6 +40,7 @@ module.exports = class Module {
   serialize() {
     const result = {
       name: this._name,
+      shortName: this._shortName,
       ...this._meta
     };
     if (this._error) {
