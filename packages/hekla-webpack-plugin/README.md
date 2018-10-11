@@ -6,13 +6,13 @@ Webpack integration for running static analysis with Hekla
 
 ## Quick setup
 
-### Step 1: add the dependencies to your `package.json` file:
+### Step 1: Add the dependencies to your `package.json` file:
 
 ```bash
 npm install --save-dev hekla-core hekla-webpack-plugin
 ```
 
-### Step 2: create a `hekla.config.js` file in your project root that looks generally like this:
+### Step 2: Create a `hekla.config.js` file in your project root that looks generally like this:
 
 ```js
 const path = require('path');
