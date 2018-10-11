@@ -15,13 +15,14 @@ npm install --save-dev hekla-core hekla-webpack-plugin
 Step 2: create a `hekla.config.js` file in your project root that looks generally like this:
 
 ```js
+const path = require('path');
 const {
   LinesOfCodePlugin,
   // Import other built-in plugins here
 } = require('hekla-core').plugins;
 
 module.exports = {
-  rootPath: __dirname,
+  rootPath: path.resolve(__dirname, 'src'),
   exclude: [
     /vendor/,
     /other-directory-to-skip/
