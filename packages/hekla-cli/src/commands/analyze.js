@@ -10,7 +10,7 @@ module.exports = function analyze(cmd) {
   const { single } = cmd;
   let config;
 
-  const configPath = path.resolve(process.cwd(), 'config.js');
+  const configPath = path.resolve(process.cwd(), 'hekla.config.js');
 
   try {
     config = require(configPath);

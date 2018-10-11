@@ -1,65 +1,33 @@
 # hekla-cli
 
+CLI for running static analysis with Hekla
+
+[![Build Status](https://travis-ci.org/andrewjensen/hekla.svg?branch=master)](https://travis-ci.org/andrewjensen/hekla)
+
 ## Usage
 
-### Step 1: Install dependencies
+### Step 1: Configure your project to use Hekla
 
-In your project directory, run:
+You usually want to integrate Hekla with your Webpack configuration, so follow the steps in the [hekla-webpack-plugin](https://www.npmjs.com/package/hekla-webpack-plugin) project.
 
-```
+### Step 2: Install the CLI tool globally
+
+```bash
 npm install -g hekla-cli
-
-npm install --save-dev hekla-core
-```
-
-### Step 2: Create a `Heklafile.js` config file
-
-Configure your `Heklafile.js` based on the types of components your Javascript project contains. If your project is written in Angular 1.x, your config file might look something like this:
-
-```js
-const path = require('path');
-const FileLoader = require('hekla-core/src/loaders').FileLoader;
-const AngularDirectiveParser = require('hekla-core/src/parsers').AngularDirectiveParser;
-const AngularFactoryParser = require('hekla-core/src/parsers').AngularFactoryParser;
-const rootPath = path.resolve(__dirname);
-
-module.exports = {
-  title: 'VolcanoApp Web Client',
-  root: rootPath,
-  debug: false,
-
-  // Load Javascript modules according to a glob pattern
-  loader: new FileLoader({
-    root: rootPath,
-    glob: '**/*.js',
-    ignore: [
-      // Skip third-party code
-      'node_modules/**',
-      'bower_components/**',
-      // Skip build artifacts
-      '**/*.built.js',
-      // Skip internal tests and tools
-      'test/**',
-      '**/*.spec.js',
-      'webpack.config.js',
-      'Gruntfile.js'
-    ]
-  }),
-
-  // Extract Angular 1.x patterns from modules
-  parsers: [
-    new AngularDirectiveParser(),
-    new AngularFactoryParser()
-  ]
-};
 ```
 
 ### Step 3: Run the analyzer
 
-In your project directory, run:
+```bash
+# Start in your project directory
+cd /path/to/your/project/
 
-```
+# See usage help
+hekla --help
+
+# Analyze the whole project directory recursively
 hekla analyze
 
-hekla view hekla.json
+# Analyze a single file
+hekla analyze --single src/your-feature/components/YourComponent.js
 ```
