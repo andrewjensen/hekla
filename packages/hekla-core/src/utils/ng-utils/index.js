@@ -130,26 +130,31 @@ function getComponents(astWrapper) {
           args[0].type === 'StringLiteral'
         )
       })) {
-        const componentName = callNode.arguments[0].value;
-        const componentDef = new AngularComponentWrapper(componentName);
+        const componentDef = analyzeComponent(callNode, astWrapper);
         componentDefs.push(componentDef);
-
-        const definitionObjectNode = findComponentDefinitionObject(callNode);
-        if (definitionObjectNode) {
-          const bindings = getBindings(definitionObjectNode)
-          componentDef.setBindings(bindings);
-
-          const controllerNode = findControllerNode(definitionObjectNode, astWrapper);
-          if (controllerNode) {
-            const controller = new AngularControllerWrapper();
-            controller.setRootNode(controllerNode);
-            componentDef.setController(controller);
-          }
-        }
       }
     }
   });
   return componentDefs;
+}
+
+function analyzeComponent(callNode, astWrapper) {
+  const componentName = callNode.arguments[0].value;
+  const componentDef = new AngularComponentWrapper(componentName);
+
+  const definitionObjectNode = findComponentDefinitionObject(callNode);
+  if (definitionObjectNode) {
+    const bindings = getBindings(definitionObjectNode)
+    componentDef.setBindings(bindings);
+
+    const controllerNode = findControllerNode(definitionObjectNode, astWrapper);
+    if (controllerNode) {
+      const controller = new AngularControllerWrapper();
+      controller.setRootNode(controllerNode);
+      componentDef.setController(controller);
+    }
+  }
+  return componentDef;
 }
 
 function findComponentDefinitionObject(callNode) {
