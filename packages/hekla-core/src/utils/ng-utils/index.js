@@ -138,7 +138,7 @@ function getComponents(astWrapper) {
         if (definitionObjectNode) {
           const bindings = getBindings(definitionObjectNode)
           componentDef.setBindings(bindings);
-          const controllerNode = findControllerNode(definitionObjectNode);
+          const controllerNode = findControllerNode(definitionObjectNode, astWrapper);
           if (controllerNode) {
             const controller = new AngularControllerWrapper();
             controller.setRootNode(controllerNode);
@@ -182,7 +182,7 @@ function getBindings(definitionObjectNode) {
   }))
 }
 
-function findControllerNode(definitionObjectNode) {
+function findControllerNode(definitionObjectNode, astWrapper) {
   const controllerPropertyNode = definitionObjectNode.properties.find(prop => looksLike(prop, {
     type: 'ObjectProperty',
     key: {
@@ -194,7 +194,37 @@ function findControllerNode(definitionObjectNode) {
     return null;
   }
   const controllerNode = controllerPropertyNode.value;
-  return controllerNode;
+  if (looksLike(controllerNode, {
+    type: 'Identifier'
+  })) {
+    // We need to find where this variable is defined
+    const identifierName = controllerNode.name;
+    return findVariableDeclaration(identifierName, astWrapper);
+  } else {
+    return controllerNode;
+  }
+}
+
+// TODO: move into astUtils
+function findVariableDeclaration(identifierName, astWrapper) {
+  let foundNode = null;
+  astWrapper.visit({
+    FunctionDeclaration(node) {
+      if (foundNode) {
+        return;
+      }
+      if (looksLike(node, {
+        type: 'FunctionDeclaration',
+        id: {
+          type: 'Identifier',
+          name: (name) => name === identifierName
+        }
+      })) {
+        foundNode = node;
+      }
+    }
+  });
+  return foundNode;
 }
 
 // Loading templates
