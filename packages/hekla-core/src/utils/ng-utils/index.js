@@ -5,6 +5,11 @@ const dashify = require('dashify');
 const astUtils = require('../ast-utils');
 const fsUtils = require('../fs-utils');
 
+const {
+  PROPERTY_UNKNOWN,
+  AngularComponentWrapper
+} = require('./AngularComponentWrapper');
+
 const { looksLike } = astUtils;
 
 module.exports = {
@@ -12,7 +17,9 @@ module.exports = {
   getKebabCaseName,
   getModuleName,
   getDefinitionFunction,
-  getTemplateInfo
+  getComponents,
+  getTemplateInfo,
+  AngularComponentWrapper
 };
 
 // Info from definition call
@@ -99,6 +106,89 @@ function getDefinitionFunction(callNode, ast) {
   } else {
     throw new Error('Cannot find definition function');
   }
+}
+
+function getComponents(astWrapper) {
+  const componentDefs = [];
+  astWrapper.visit({
+    CallExpression(callNode) {
+      if (looksLike(callNode, {
+        type: 'CallExpression',
+        callee: {
+          type: 'MemberExpression',
+          property: {
+            type: 'Identifier',
+            name: 'component'
+          }
+        },
+        arguments: (args) => (
+          args.length === 2 &&
+          args[0].type === 'StringLiteral'
+        )
+      })) {
+        const componentName = callNode.arguments[0].value;
+        const componentDef = new AngularComponentWrapper(componentName);
+        componentDefs.push(componentDef);
+
+        const definitionObjectNode = findComponentDefinitionObject(callNode);
+        if (definitionObjectNode) {
+          const bindings = getBindings(definitionObjectNode)
+          componentDef.setBindings(bindings);
+          const controllerNode = findControllerNode(definitionObjectNode);
+          if (controllerNode) {
+            componentDef.setControllerNode(controllerNode);
+          }
+        }
+      }
+    }
+  });
+  return componentDefs;
+}
+
+function findComponentDefinitionObject(callNode) {
+  if (looksLike(callNode, {
+    arguments: (args) => (
+      args.length === 2 &&
+      args[1].type === 'ObjectExpression'
+    )
+  })) {
+    return callNode.arguments[1];
+  } else {
+    // TODO: if we have an identifier, find that variable's initialization if possible
+    return null;
+  }
+}
+
+function getBindings(definitionObjectNode) {
+  const bindingsPropertyNode = definitionObjectNode.properties.find(prop => looksLike(prop, {
+    type: 'ObjectProperty',
+    key: {
+      type: 'Identifier',
+      name: 'bindings'
+    }
+  }));
+  if (!bindingsPropertyNode) {
+    return [];
+  }
+  return bindingsPropertyNode.value.properties.map(binding => ({
+    name: binding.key.name,
+    type: binding.value.value
+  }))
+}
+
+function findControllerNode(definitionObjectNode) {
+  const controllerPropertyNode = definitionObjectNode.properties.find(prop => looksLike(prop, {
+    type: 'ObjectProperty',
+    key: {
+      type: 'Identifier',
+      name: 'controller'
+    }
+  }));
+  if (!controllerPropertyNode) {
+    return null;
+  }
+  const controllerNode = controllerPropertyNode.value;
+  return controllerNode;
 }
 
 // Loading templates
