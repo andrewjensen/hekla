@@ -5,15 +5,15 @@ class AngularComponentWrapper {
   constructor(componentName) {
     this.name = componentName;
     this.bindings = PROPERTY_UNKNOWN;
-    this.controllerNode = PROPERTY_UNKNOWN;
+    this.controller = PROPERTY_UNKNOWN;
   }
 
   setBindings(bindings) {
     this.bindings = bindings;
   }
 
-  setControllerNode(controllerNode) {
-    this.controllerNode = controllerNode;
+  setController(controllerWrapper) {
+    this.controller = controllerWrapper;
   }
 };
 

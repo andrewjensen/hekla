@@ -1,8 +1,15 @@
 const path = require('path');
 
-const { parseAST, ASTWrapper, looksLike } = require('../ast-utils');
+const {
+  parseAST,
+  ASTWrapper,
+  looksLike
+} = require('../ast-utils');
 const ngUtils = require('./index');
-const { AngularComponentWrapper } = require('./index');
+const {
+  AngularComponentWrapper,
+  AngularControllerWrapper
+} = require('./index');
 
 function makeModule(filename) {
   const modulePath = path.resolve(__dirname, './test-examples/', filename);
@@ -54,9 +61,14 @@ describe('ngUtils', () => {
       expect(componentDefs).to.have.lengthOf(1);
 
       const componentDef = componentDefs[0];
-      expect(componentDef.controllerNode).to.not.be.undefined;
-      expect(componentDef.controllerNode).to.not.equal('PROPERTY_UNKNOWN');
-      expect(looksLike(componentDef.controllerNode, {
+      expect(componentDef.controller).to.not.be.undefined;
+      expect(componentDef.controller).to.not.equal('PROPERTY_UNKNOWN');
+      expect(componentDef.controller).to.be.instanceOf(AngularControllerWrapper);
+
+      const controllerDef = componentDef.controller;
+      expect(controllerDef.rootNode).to.not.be.undefined;
+      expect(controllerDef.rootNode).to.not.equal('PROPERTY_UNKNOWN');
+      expect(looksLike(controllerDef.rootNode, {
         type: 'FunctionExpression',
         id: {
           type: 'Identifier',

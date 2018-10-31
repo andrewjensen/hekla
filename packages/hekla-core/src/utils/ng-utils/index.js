@@ -9,6 +9,9 @@ const {
   PROPERTY_UNKNOWN,
   AngularComponentWrapper
 } = require('./AngularComponentWrapper');
+const {
+  AngularControllerWrapper
+} = require('./AngularControllerWrapper');
 
 const { looksLike } = astUtils;
 
@@ -19,7 +22,8 @@ module.exports = {
   getDefinitionFunction,
   getComponents,
   getTemplateInfo,
-  AngularComponentWrapper
+  AngularComponentWrapper,
+  AngularControllerWrapper
 };
 
 // Info from definition call
@@ -136,7 +140,9 @@ function getComponents(astWrapper) {
           componentDef.setBindings(bindings);
           const controllerNode = findControllerNode(definitionObjectNode);
           if (controllerNode) {
-            componentDef.setControllerNode(controllerNode);
+            const controller = new AngularControllerWrapper();
+            controller.setRootNode(controllerNode);
+            componentDef.setController(controller);
           }
         }
       }
