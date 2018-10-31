@@ -138,6 +138,7 @@ function getComponents(astWrapper) {
         if (definitionObjectNode) {
           const bindings = getBindings(definitionObjectNode)
           componentDef.setBindings(bindings);
+
           const controllerNode = findControllerNode(definitionObjectNode, astWrapper);
           if (controllerNode) {
             const controller = new AngularControllerWrapper();
@@ -220,6 +221,20 @@ function findVariableDeclaration(identifierName, astWrapper) {
           name: (name) => name === identifierName
         }
       })) {
+        foundNode = node;
+      }
+    },
+    ClassDeclaration(node) {
+      if (foundNode) {
+        return;
+      }
+      if (looksLike(node), {
+        type: 'ClassDeclaration',
+        id: {
+          type: 'Identifier',
+          name: (name) => name === identifierName
+        }
+      }) {
         foundNode = node;
       }
     }

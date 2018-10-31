@@ -26,7 +26,8 @@ describe('ngUtils', () => {
   before(() => {
     EXAMPLES = {
       componentController: makeModule('component-controller.js'),
-      reference: makeModule('component-controller-reference.js')
+      reference: makeModule('component-controller-reference.js'),
+      referenceClass: makeModule('component-controller-reference-class.js'),
     };
   });
 
@@ -97,6 +98,27 @@ describe('ngUtils', () => {
         }
       })).to.be.true;
     });
+
+    it('should find the controller based on an identifier for a class', async () => {
+      const contents = EXAMPLES.referenceClass.contents;
+      const ast = await parseAST(contents, '');
+      const astWrapper = new ASTWrapper(ast);
+      const componentDefs = ngUtils.getComponents(astWrapper);
+      expect(componentDefs).to.have.lengthOf(1);
+
+      const componentDef = componentDefs[0];
+      const controllerDef = componentDef.controller;
+      expect(controllerDef.rootNode).to.not.be.undefined;
+      expect(controllerDef.rootNode).to.not.equal('PROPERTY_UNKNOWN');
+      expect(looksLike(controllerDef.rootNode, {
+        type: 'ClassDeclaration',
+        id: {
+          type: 'Identifier',
+          name: 'PetShopController'
+        }
+      })).to.be.true;
+    });
+
   });
 
 });
