@@ -28,6 +28,7 @@ describe('ngUtils', () => {
       componentController: makeModule('component-controller.js'),
       reference: makeModule('component-controller-reference.js'),
       referenceClass: makeModule('component-controller-reference-class.js'),
+      stringDeclaration: makeModule('component-controller-string-declaration.js'),
     };
   });
 
@@ -115,6 +116,26 @@ describe('ngUtils', () => {
         id: {
           type: 'Identifier',
           name: 'PetShopController'
+        }
+      })).to.be.true;
+    });
+
+    it('should find the controller based on a string literal and controller declaration', async () => {
+      const contents = EXAMPLES.stringDeclaration.contents;
+      const ast = await parseAST(contents, '');
+      const astWrapper = new ASTWrapper(ast);
+      const componentDefs = ngUtils.getComponents(astWrapper);
+      expect(componentDefs).to.have.lengthOf(1);
+
+      const componentDef = componentDefs[0];
+      const controllerDef = componentDef.controller;
+      expect(controllerDef.rootNode).to.not.be.undefined;
+      expect(controllerDef.rootNode).to.not.equal('PROPERTY_UNKNOWN');
+      expect(looksLike(controllerDef.rootNode, {
+        type: 'FunctionDeclaration',
+        id: {
+          type: 'Identifier',
+          name: 'petShopController'
         }
       })).to.be.true;
     });

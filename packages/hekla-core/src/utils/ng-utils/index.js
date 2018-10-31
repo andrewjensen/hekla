@@ -194,20 +194,60 @@ function findControllerNode(definitionObjectNode, astWrapper) {
   if (!controllerPropertyNode) {
     return null;
   }
-  const controllerNode = controllerPropertyNode.value;
-  if (looksLike(controllerNode, {
-    type: 'Identifier'
-  })) {
+  const controllerPropertyValue = controllerPropertyNode.value;
+  return dereferenceControllerNode(controllerPropertyValue, astWrapper);
+}
+
+function findControllerByDeclaration(controllerName, astWrapper) {
+  let foundNode = null;
+  astWrapper.visit({
+    CallExpression(callNode) {
+      if (foundNode) {
+        return;
+      }
+      if (looksLike(callNode, {
+        type: 'CallExpression',
+        callee: {
+          type: 'MemberExpression',
+          property: {
+            type: 'Identifier',
+            name: 'controller'
+          }
+        },
+        arguments: (args) => (
+          args.length === 2 &&
+          args[0].type === 'StringLiteral' &&
+          args[0].value === controllerName
+        )
+      })) {
+        foundNode = callNode;
+      }
+    }
+  });
+  if (!foundNode) {
+    return null;
+  }
+  const controllerRefNode = foundNode.arguments[1];
+  return dereferenceControllerNode(controllerRefNode, astWrapper);
+}
+
+function dereferenceControllerNode(controllerRefNode, astWrapper) {
+  if (looksLike(controllerRefNode, { type: 'Identifier' })) {
     // We need to find where this variable is defined
-    const identifierName = controllerNode.name;
-    return findVariableDeclaration(identifierName, astWrapper);
+    const identifierName = controllerRefNode.name;
+    return dereferenceIdentifier(identifierName, astWrapper);
+  } else if (looksLike(controllerRefNode, { type: 'StringLiteral' })) {
+    // We have a name, so we need to find the matching declaration
+    const controllerName = controllerRefNode.value;
+    return findControllerByDeclaration(controllerName, astWrapper);
   } else {
-    return controllerNode;
+    // We've found it!
+    return controllerRefNode;
   }
 }
 
 // TODO: move into astUtils
-function findVariableDeclaration(identifierName, astWrapper) {
+function dereferenceIdentifier(identifierName, astWrapper) {
   let foundNode = null;
   astWrapper.visit({
     FunctionDeclaration(node) {
