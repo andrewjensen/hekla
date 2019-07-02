@@ -59,6 +59,9 @@ module.exports = async function analyze(cmd) {
 };
 
 async function saveAnalysis(analysis, config) {
-  const filename = path.resolve(config.rootPath, 'analysis.json');
-  await writeJSON(analysis, filename);
+  const outputFilename = config.outputPath
+    ? path.resolve(config.outputPath, 'analysis.json')
+    : path.resolve(config.rootPath, 'analysis.json');
+
+  await writeJSON(analysis, outputFilename);
 }

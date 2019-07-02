@@ -22,6 +22,37 @@ describe('ConfigValidator', () => {
 
     });
 
+    describe('outputPath', () => {
+
+      it('should allow strings', () => {
+        const validator = new ConfigValidator();
+        validator.validate({
+          rootPath: '/path/to/project',
+          outputPath: '/path/to/project/build',
+        });
+        expect(validator.isValid()).to.be.true;
+      });
+
+      it('should fail on invalid input', () => {
+        const validator = new ConfigValidator();
+        validator.validate({
+          rootPath: '/path/to/project',
+          outputPath: 123,
+        });
+        expect(validator.getErrors()).to.deep.equal(['Output path is not a string']);
+      });
+
+      it('should fail if the path includes a file name', () => {
+        const validator = new ConfigValidator();
+        validator.validate({
+          rootPath: '/path/to/project',
+          outputPath: '/path/to/project/build/analysis.json',
+        });
+        expect(validator.getErrors()).to.deep.equal(['Output path must be a directory']);
+      });
+
+    });
+
     describe('exclude', () => {
 
       it('should allow strings', () => {
