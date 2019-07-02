@@ -25,14 +25,6 @@ function getAnalysis() {
 describe('simple', () => {
 
   it('should compile a simple project', async () => {
-
-
-    // TODO:
-    // need to set a global timeout: https://github.com/facebook/jest/issues/652   maybe use setupTestFrameworkScriptFile
-    // adjust .gitignore before checking everything in
-    // clean up devDependencies that we won't actually use
-    // Disable module reporters in the HeklaWebpackPlugin (split into a Hekla plugin?)
-
     const config = require('./webpack.config');
     await compile(config);
 
