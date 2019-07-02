@@ -1,13 +1,36 @@
 const fs = require('fs');
-const path = require('path');
+const glob = require('glob');
 
 module.exports = {
+  getProjectFiles,
   getFileExists,
   getFileContents,
   writeJSON,
   getModuleName,
   getModuleShortName
 };
+
+const defaultOptions = {
+  ignorePatterns: [],
+  globPattern: '**'
+};
+function getProjectFiles(rootPath, options) {
+  const combinedOptions = { ...defaultOptions, ...options };
+  return new Promise((resolve, reject) => {
+    const globOptions = {
+      cwd: rootPath,
+      ignore: combinedOptions.ignorePatterns,
+      absolute: true,
+      nodir: true
+    };
+    glob(combinedOptions.globPattern, globOptions, (err, files) => {
+      if (err) return reject(err);
+
+      resolve(files);
+    });
+  });
+}
+
 
 function getFileExists(filePath) {
   return new Promise((resolve, reject) => {

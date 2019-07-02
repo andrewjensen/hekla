@@ -49,7 +49,7 @@ describe('Analyzer', () => {
       analyzer.applyConfig({
         rootPath: '/path/to/project'
       });
-      expect(analyzer.rootPath).to.equal('/path/to/project');
+      expect(analyzer.config.rootPath).to.equal('/path/to/project');
     });
 
     it('should apply plugins', () => {

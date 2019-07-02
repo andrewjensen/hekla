@@ -10,8 +10,8 @@ module.exports = class ConfigValidator {
 
     if (config.hasOwnProperty('exclude')) {
       for (let excludePattern of config.exclude) {
-        if (!(excludePattern instanceof RegExp)) {
-          this.errors.push('Exclude pattern is not a regular expression');
+        if (typeof excludePattern !== 'string') {
+          this.errors.push('Exclude pattern is not a string');
         }
       }
     }

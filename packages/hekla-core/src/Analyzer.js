@@ -5,6 +5,9 @@ const {
 
 const Module = require('./Module');
 const {
+  getProjectFiles
+} = require('./utils/fs-utils');
+const {
   parseAST,
   parseHTML,
   ASTWrapper,
@@ -13,7 +16,7 @@ const {
 
 module.exports = class Analyzer {
   constructor() {
-    this.rootPath = null;
+    this.config = null;
     this.fs = null;
     this.modules = [];
     this.hooks = {
@@ -25,7 +28,7 @@ module.exports = class Analyzer {
   }
 
   applyConfig(config) {
-    this.rootPath = config.rootPath;
+    this.config = config;
 
     if (config.plugins) {
       for (let plugin of config.plugins) {
@@ -45,8 +48,20 @@ module.exports = class Analyzer {
     return analysis;
   }
 
+  async run() {
+    const files = await getProjectFiles(this.config.rootPath, {
+      ignorePatterns: this.config.exclude || []
+    });
+
+    for (let file of files) {
+      // TODO: use worker queue to parallelize this
+      const fileModule = this.createModule(file);
+      await this.processModule(fileModule);
+    }
+  }
+
   createModule(resource) {
-    return new Module(resource, this.rootPath);
+    return new Module(resource, this.config.rootPath);
   }
 
   processModule(module) {

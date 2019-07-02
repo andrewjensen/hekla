@@ -24,15 +24,16 @@ describe('ConfigValidator', () => {
 
     describe('exclude', () => {
 
-      it('should allow regular expressions', () => {
+      it('should allow strings', () => {
         const validator = new ConfigValidator();
         validator.validate({
           rootPath: '/path/to/project',
           exclude: [
-            /src\/old/,
-            /src\/ignore/,
-            /src\/deprecated/,
-            /vendor/
+            'src/old/**',
+            'src/ignore/**',
+            'src/deprecated/**',
+            'vendor/**',
+            '**/*.png'
           ]
         });
         expect(validator.isValid()).to.be.true;
@@ -43,11 +44,23 @@ describe('ConfigValidator', () => {
         validator.validate({
           rootPath: '/path/to/project',
           exclude: [
-            /src\/old/,
+            'src/old/**',
             1234
           ]
         });
-        expect(validator.getErrors()).to.deep.equal(['Exclude pattern is not a regular expression']);
+        expect(validator.getErrors()).to.deep.equal(['Exclude pattern is not a string']);
+      });
+
+      it('should fail on regular expressions', () => {
+        const validator = new ConfigValidator();
+        validator.validate({
+          rootPath: '/path/to/project',
+          exclude: [
+            'src/old/**',
+            /vendor/
+          ]
+        });
+        expect(validator.getErrors()).to.deep.equal(['Exclude pattern is not a string']);
       });
 
     });

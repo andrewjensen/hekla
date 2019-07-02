@@ -24,8 +24,8 @@ const {
 module.exports = {
   rootPath: path.resolve(__dirname, 'src'),
   exclude: [
-    /vendor/,
-    /other-directory-to-skip/
+    'vendor/**',
+    'other-directory-to-skip/**'
   ],
   plugins: [
     new LinesOfCodePlugin()

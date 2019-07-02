@@ -5,8 +5,11 @@ const {
   Analyzer,
   ConfigValidator
 } = require('hekla-core');
+const {
+  writeJSON
+} = require('hekla-core').fsUtils;
 
-module.exports = function analyze(cmd) {
+module.exports = async function analyze(cmd) {
   const { single } = cmd;
   let config;
 
@@ -35,16 +38,23 @@ module.exports = function analyze(cmd) {
   analyzer.setInputFileSystem(fs);
   analyzer.applyConfig(config);
 
+  console.log('Analyzing...');
   if (single) {
     const filePath = path.resolve(process.cwd(), single);
-
     const module = analyzer.createModule(filePath);
-    analyzer.processModule(module)
-      .then(() => {
-        // TODO: Save JSON
-        const analysis = analyzer.getAnalysis();
-        const json = JSON.stringify(analysis, null, 2);
-        console.log(json);
-      });
+    await analyzer.processModule(module)
+  } else {
+    await analyzer.run();
   }
+
+  console.log('Saving...');
+  const analysis = analyzer.getAnalysis();
+  await saveAnalysis(analysis, analyzer.config);
+
+  console.log('Done.');
 };
+
+async function saveAnalysis(analysis, config) {
+  const filename = path.resolve(config.rootPath, 'analysis.json');
+  await writeJSON(analysis, filename);
+}
