@@ -1,5 +1,6 @@
 const asyncLib = require('async');
 const chalk = require('chalk');
+const minimatch = require('minimatch');
 const StickyTerminalDisplay = require('sticky-terminal-display');
 const {
   Analyzer,
@@ -67,7 +68,7 @@ module.exports = class HeklaWebpackPlugin {
 
     if (this.config.exclude) {
       for (let excludePattern of this.config.exclude) {
-        if (moduleName.match(excludePattern)) {
+        if (minimatch(moduleName, excludePattern)) {
           return;
         }
       }
