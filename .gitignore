@@ -39,3 +39,4 @@ jspm_packages
 ###########################
 
 packages/hekla-viewer/build/
+packages/hekla-webpack-plugin/test/cases/*/dist/
