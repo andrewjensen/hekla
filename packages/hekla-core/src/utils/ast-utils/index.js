@@ -39,6 +39,7 @@ function parseAST(fileContents, filePath) {
         'classProperties',
         'jsx',
         'typescript',
+        'optionalCatchBinding',
       ]
     });
     return Promise.resolve(ast);
