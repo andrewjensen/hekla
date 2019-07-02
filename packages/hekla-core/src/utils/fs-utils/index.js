@@ -20,7 +20,8 @@ function getProjectFiles(rootPath, options) {
     const globOptions = {
       cwd: rootPath,
       ignore: combinedOptions.ignorePatterns,
-      absolute: true
+      absolute: true,
+      nodir: true
     };
     glob(combinedOptions.globPattern, globOptions, (err, files) => {
       if (err) return reject(err);
