@@ -1,1 +1,1 @@
-// TODO: make jest run something here
+jest.setTimeout(60 * 1000);
