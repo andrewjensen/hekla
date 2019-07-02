@@ -13,7 +13,7 @@ const {
 
 module.exports = class Analyzer {
   constructor() {
-    this.rootPath = null;
+    this.config = null;
     this.fs = null;
     this.modules = [];
     this.hooks = {
@@ -25,7 +25,7 @@ module.exports = class Analyzer {
   }
 
   applyConfig(config) {
-    this.rootPath = config.rootPath;
+    this.config = config;
 
     if (config.plugins) {
       for (let plugin of config.plugins) {
@@ -46,7 +46,7 @@ module.exports = class Analyzer {
   }
 
   createModule(resource) {
-    return new Module(resource, this.rootPath);
+    return new Module(resource, this.config.rootPath);
   }
 
   processModule(module) {

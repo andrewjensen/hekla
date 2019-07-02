@@ -59,7 +59,7 @@ module.exports = class HeklaWebpackPlugin {
     }
 
     const sanitizedResource = resource.replace(/\?.*$/, '');
-    const moduleName = getModuleName(sanitizedResource, this.analyzer.rootPath);
+    const moduleName = getModuleName(sanitizedResource, this.analyzer.config.rootPath);
 
     if (moduleName.match(/node_modules/)) {
       return;
