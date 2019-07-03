@@ -13,6 +13,7 @@ program
   .command('analyze')
   .description('Analyze a project')
   .option('-s, --single <filename>', 'Analyze a single file')
+  .option('-c, --config <filename>', 'Config file location')
   .action(analyze);
 
 program

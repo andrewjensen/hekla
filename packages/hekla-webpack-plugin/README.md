@@ -23,6 +23,7 @@ const {
 
 module.exports = {
   rootPath: path.resolve(__dirname, 'src'),
+  outputPath: path.resolve(__dirname),
   exclude: [
     'vendor/**',
     'other-directory-to-skip/**'

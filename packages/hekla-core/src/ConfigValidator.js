@@ -8,6 +8,14 @@ module.exports = class ConfigValidator {
       this.errors.push('rootPath is not configured');
     }
 
+    if (config.hasOwnProperty('outputPath')) {
+      if (typeof config.outputPath !== 'string') {
+        this.errors.push('Output path is not a string');
+      } else if (config.outputPath.match(/\.[a-zA-Z0-9]+$/)) {
+        this.errors.push('Output path must be a directory');
+      }
+    }
+
     if (config.hasOwnProperty('exclude')) {
       for (let excludePattern of config.exclude) {
         if (typeof excludePattern !== 'string') {

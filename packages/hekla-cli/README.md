@@ -30,4 +30,7 @@ hekla analyze
 
 # Analyze a single file
 hekla analyze --single src/your-feature/components/YourComponent.js
+
+# Specify a custom config file location
+hekla analyze --config path/to/your/hekla.config.js
 ```

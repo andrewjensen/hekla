@@ -10,10 +10,14 @@ const {
 } = require('hekla-core').fsUtils;
 
 module.exports = async function analyze(cmd) {
-  const { single } = cmd;
-  let config;
+  const singleFileLocation = cmd.single;
+  const customConfigLocation = cmd.config;
 
-  const configPath = path.resolve(process.cwd(), 'hekla.config.js');
+  let configPath = customConfigLocation
+    ? path.resolve(process.cwd(), customConfigLocation)
+    : path.resolve(process.cwd(), 'hekla.config.js');
+
+  let config;
 
   try {
     config = require(configPath);
@@ -39,8 +43,8 @@ module.exports = async function analyze(cmd) {
   analyzer.applyConfig(config);
 
   console.log('Analyzing...');
-  if (single) {
-    const filePath = path.resolve(process.cwd(), single);
+  if (singleFileLocation) {
+    const filePath = path.resolve(process.cwd(), singleFileLocation);
     const module = analyzer.createModule(filePath);
     await analyzer.processModule(module)
   } else {
@@ -55,6 +59,9 @@ module.exports = async function analyze(cmd) {
 };
 
 async function saveAnalysis(analysis, config) {
-  const filename = path.resolve(config.rootPath, 'analysis.json');
-  await writeJSON(analysis, filename);
+  const outputFilename = config.outputPath
+    ? path.resolve(config.outputPath, 'analysis.json')
+    : path.resolve(config.rootPath, 'analysis.json');
+
+  await writeJSON(analysis, outputFilename);
 }
