@@ -4,6 +4,8 @@ Webpack integration for running static analysis with Hekla
 
 [![Build Status](https://travis-ci.org/andrewjensen/hekla.svg?branch=master)](https://travis-ci.org/andrewjensen/hekla)
 
+Supports Webpack v3 and above.
+
 ## Quick setup
 
 ### Step 1: Add the dependencies to your `package.json` file:

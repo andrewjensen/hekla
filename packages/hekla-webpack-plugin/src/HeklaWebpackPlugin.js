@@ -45,12 +45,23 @@ module.exports = class HeklaWebpackPlugin {
 
     this.analyzer.applyConfig(this.config);
 
-    compiler.hooks.emit.tapPromise('AnalysisPlugin', this.emit.bind(this));
+    if (compiler.hooks) {
+      // Webpack 4+
+      compiler.hooks.emit.tapPromise('AnalysisPlugin', this.emit.bind(this));
 
-    compiler.hooks.compilation.tap('AnalysisPlugin', (compilation) => {
-      this.analyzer.setInputFileSystem(compilation.inputFileSystem);
-      compilation.hooks.succeedModule.tap('AnalysisPlugin', this.succeedModule.bind(this));
-    });
+      compiler.hooks.compilation.tap('AnalysisPlugin', (compilation) => {
+        this.analyzer.setInputFileSystem(compilation.inputFileSystem);
+        compilation.hooks.succeedModule.tap('AnalysisPlugin', this.succeedModule.bind(this));
+      });
+    } else {
+      // Webpack 3
+      compiler.plugin('emit', this.emit.bind(this));
+
+      compiler.plugin('compilation', (compilation) => {
+        this.analyzer.setInputFileSystem(compilation.inputFileSystem);
+        compilation.plugin('succeed-module', this.succeedModule.bind(this));
+      });
+    }
   }
 
   succeedModule(webpackModule) {
