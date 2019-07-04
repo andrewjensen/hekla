@@ -66,7 +66,6 @@ module.exports = class Analyzer {
 
     for (let file of files) {
       const fileModule = this.createModule(file);
-      // await this.processModule(fileModule);
       this.queueProcessModule(fileModule);
     }
 
