@@ -14,11 +14,13 @@
     "@babel/types": "^7.1.2",
     "async": "^2.1.2",
     "camel-case": "^3.0.0",
+    "chalk": "^2.4.2",
     "dashify": "^0.2.2",
     "domhandler": "^2.4.2",
     "glob": "^7.1.4",
     "htmlparser2": "^3.9.1",
     "minimatch": "^3.0.4",
+    "sticky-terminal-display": "^0.1.0",
     "tapable": "^1.1.0",
     "tree-walk": "^0.4.0"
   },
