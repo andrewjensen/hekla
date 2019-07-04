@@ -9,10 +9,7 @@
   "author": "Andrew Jensen <andrewjensen90@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "async": "^2.6.1",
-    "chalk": "^2.4.1",
-    "hekla-core": "^0.2.0",
-    "sticky-terminal-display": "^0.1.0"
+    "hekla-core": "^0.2.0"
   },
   "devDependencies": {
     "jest": "^24.8.0",
