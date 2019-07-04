@@ -38,28 +38,28 @@ describe('WorkQueue', () => {
         type: 'STATUS_MODULE_QUEUED',
         payload: {
           moduleName: './src/truck.js',
-          workerIdx: 0
+          workerId: 0
         }
       },
       {
         type: 'STATUS_MODULE_QUEUED',
         payload: {
           moduleName: './src/bus.js',
-          workerIdx: 0
+          workerId: 1
         }
       },
       {
         type: 'STATUS_MODULE_SUCCESSFUL',
         payload: {
           moduleName: './src/truck.js',
-          workerIdx: 0
+          workerId: 0
         }
       },
       {
         type: 'STATUS_MODULE_SUCCESSFUL',
         payload: {
           moduleName: './src/bus.js',
-          workerIdx: 0
+          workerId: 1
         }
       }
     ]);

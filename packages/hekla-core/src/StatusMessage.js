@@ -26,27 +26,27 @@ const analysisFailed = (error) => ({
   }
 });
 
-const moduleQueued = (moduleName, workerIdx) => ({
+const moduleQueued = (moduleName, workerId) => ({
   type: TYPES.STATUS_MODULE_QUEUED,
   payload: {
     moduleName,
-    workerIdx
+    workerId
   }
 });
 
-const moduleSuccessful = (moduleName, workerIdx) => ({
+const moduleSuccessful = (moduleName, workerId) => ({
   type: TYPES.STATUS_MODULE_SUCCESSFUL,
   payload: {
     moduleName,
-    workerIdx
+    workerId
   }
 });
 
-const moduleFailed = (moduleName, workerIdx, error) => ({
+const moduleFailed = (moduleName, workerId, error) => ({
   type: TYPES.STATUS_MODULE_FAILED,
   payload: {
     moduleName,
-    workerIdx,
+    workerId,
     error
   }
 });

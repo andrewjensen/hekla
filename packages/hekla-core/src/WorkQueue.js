@@ -16,6 +16,7 @@ module.exports = class WorkQueue {
   start(workerCount) {
     this.started = true;
     this.workerCount = workerCount;
+    this.workersOccupied = new Set();
 
     this.queueWorking = true;
     this.queueDrainResolver = null;
@@ -65,19 +66,18 @@ module.exports = class WorkQueue {
   async _queueWorker(task) {
     this.queueWorking = true;
     const { moduleName, resource } = task;
-
-    // TODO: get the actual worker index
-    const workerIdx = 0;
-
     let module = this.analyzer.createModule(resource);
 
+    const workerId = this._claimWorkerId();
+
     try {
-      this._sendStatusUpdate(moduleQueued(module.getName(), workerIdx));
+      this._sendStatusUpdate(moduleQueued(module.getName(), workerId));
 
       await this.analyzer.processModule(module);
-      this._sendStatusUpdate(moduleSuccessful(module.getName(), workerIdx));
+      this._sendStatusUpdate(moduleSuccessful(module.getName(), workerId));
+      this._freeWorkerId(workerId);
     } catch (err) {
-      this._sendStatusUpdate(moduleFailed(module.getName(), workerIdx, err));
+      this._sendStatusUpdate(moduleFailed(module.getName(), workerId, err));
     }
   }
 
@@ -85,6 +85,28 @@ module.exports = class WorkQueue {
     for (let callback of this.statusCallbacks) {
       callback(statusMessage);
     }
+  }
+
+  _claimWorkerId() {
+    let availableId = -1;
+    for (let id = 0; id < this.workerCount; id++) {
+      if (!this.workersOccupied.has(id)) {
+        availableId = id;
+        break;
+      }
+    }
+    if (availableId === -1) {
+      throw new Error('No free workers');
+    }
+    this.workersOccupied.add(availableId);
+    return availableId;
+  }
+
+  _freeWorkerId(id) {
+    if (id === -1) {
+      throw new Error('Unknown renderer');
+    }
+    this.workersOccupied.delete(id);
   }
 }
 
