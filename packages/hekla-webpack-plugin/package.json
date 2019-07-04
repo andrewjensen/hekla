@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "test-ci": "CI=true jest"
   },
   "author": "Andrew Jensen <andrewjensen90@gmail.com>",
   "license": "MIT",

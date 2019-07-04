@@ -4,7 +4,7 @@
   "description": "A toolset to make large JS codebases more understandable",
   "main": "index.js",
   "scripts": {
-    "test": "cd packages/hekla-core/ && npm test",
+    "test": "lerna run test-ci",
     "postinstall": "lerna bootstrap"
   },
   "repository": {
