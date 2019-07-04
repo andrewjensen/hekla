@@ -10,21 +10,29 @@ module.exports = class StatusUpdatePlugin {
   }
 
   onStatusUpdate(message) {
-    switch (message.type) {
-      case TYPES.STATUS_ANALYSIS_STARTED:
-        return this.analysisStarted(message.payload.workerCount);
+    try {
+      switch (message.type) {
+        case TYPES.STATUS_ANALYSIS_STARTED:
+          return this.analysisStarted(message.payload.workerCount);
 
-      case TYPES.STATUS_ANALYSIS_SUCCESSFUL:
-        return this.analysisSuccessful();
+        case TYPES.STATUS_ANALYSIS_SUCCESSFUL:
+          return this.analysisSuccessful();
 
-      case TYPES.STATUS_MODULE_QUEUED:
-        return this.moduleQueued(message.payload.moduleName, message.payload.workerId);
+        case TYPES.STATUS_MODULE_QUEUED:
+          return this.moduleQueued(message.payload.moduleName, message.payload.workerId);
 
-      case TYPES.STATUS_MODULE_SUCCESSFUL:
-        return this.moduleSuccessful(message.payload.workerId);
+        case TYPES.STATUS_MODULE_SUCCESSFUL:
+          return this.moduleSuccessful(message.payload.workerId);
 
-      default:
-        throw new Exception(`Unhandled status update type: ${message.type}`);
+        case TYPES.STATUS_MODULE_FAILED:
+            return this.moduleFailed(message.payload.workerId);
+
+        default:
+          throw new Exception(`Unhandled status update type: ${message.type}`);
+      }
+    } catch (err) {
+      console.log('Error in event handler:', err);
+      throw err;
     }
   }
 
@@ -65,6 +73,14 @@ module.exports = class StatusUpdatePlugin {
       .write(`  ${chalk.bold(`Worker ${workerId + 1}`)}: free`);
 
     this.stats.completed++;
+    this.printSummary();
+  }
+
+  moduleFailed(workerId) {
+    this.getWorkerRenderer(workerId)
+      .write(`  ${chalk.bold(`Worker ${workerId + 1}`)}: free`);
+
+    this.stats.errors++;
     this.printSummary();
   }
 

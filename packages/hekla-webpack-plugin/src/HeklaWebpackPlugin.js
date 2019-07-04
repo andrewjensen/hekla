@@ -1,15 +1,12 @@
-const asyncLib = require('async');
-const chalk = require('chalk');
 const minimatch = require('minimatch');
-const StickyTerminalDisplay = require('sticky-terminal-display');
 const {
   Analyzer,
-  ConfigValidator
+  ConfigValidator,
+  Module
 } = require('hekla-core');
 const { getModuleName } = require('hekla-core').fsUtils;
 
 const WORKER_COUNT = 5;
-const BAIL_ON_ERROR = false; // for debugging purposes
 
 module.exports = class HeklaWebpackPlugin {
   constructor(config) {
@@ -17,16 +14,6 @@ module.exports = class HeklaWebpackPlugin {
     this.analyzer = new Analyzer();
 
     this.foundResources = new Set();
-
-    this.queue = asyncLib.queue(this.resourceWorker.bind(this), WORKER_COUNT);
-    this.queue.drain = this.onQueueDrain.bind(this);
-    this.queueWorking = true;
-    this.queueDrainResolver = null;
-    this.queueDrainRejecter = null;
-    this.summary = {
-      completed: 0,
-      errors: 0
-    };
   }
 
   // Webpack lifecycle hooks
@@ -44,6 +31,7 @@ module.exports = class HeklaWebpackPlugin {
     }
 
     this.analyzer.applyConfig(this.config);
+    this.analyzer.startWorkers(WORKER_COUNT);
 
     if (compiler.hooks) {
       // Webpack 4+
@@ -90,18 +78,13 @@ module.exports = class HeklaWebpackPlugin {
     }
     this.foundResources.add(sanitizedResource);
 
-    if (this.foundResources.size === 1) {
-      this.setupRenderers();
-    }
-
-    this.printSummary();
-
-    this.queue.push(makeTask(moduleName, sanitizedResource));
+    const fileModule = new Module(sanitizedResource, this.analyzer.config.rootPath);
+    this.analyzer.queueProcessModule(fileModule);
   }
 
   emit(compilation) {
     let analysis;
-    return this.waitForQueueDrain()
+    return this.analyzer.waitForWorkers()
       .then(() => {
         analysis = this.analyzer.getAnalysis();
         return this.analyzer.processReporters(analysis);
@@ -123,105 +106,4 @@ module.exports = class HeklaWebpackPlugin {
         throw err;
       });
   }
-
-  // Worker queue
-
-  resourceWorker(task, done) {
-    this.queueWorking = true;
-    const { moduleName, resource } = task;
-
-    // Get renderer
-    const renderer = this.assignRenderer();
-    const rendererId = (this.workerRenderers.indexOf(renderer) + 1);
-
-    // TODO: truncate the moduleName if it is too long for the message to show on a single line
-    renderer.write(`  ${chalk.bold(`Worker ${rendererId}`)}: ${moduleName}`);
-
-    let module = this.analyzer.createModule(resource);
-
-    this.analyzer.processModule(module)
-      .then(() => {
-        this.freeRenderer(renderer);
-        this.summary.completed++;
-        this.printSummary();
-        done();
-      })
-      .catch(err => {
-        if (BAIL_ON_ERROR) {
-          console.log(err);
-          process.exit(1);
-        }
-        this.freeRenderer(renderer);
-        this.summary.errors++;
-        this.printSummary();
-        done(err);
-      });
-  }
-
-  onQueueDrain() {
-    this.queueWorking = false;
-    if (this.queueDrainResolver) {
-      this.queueDrainResolver();
-    }
-  }
-
-  waitForQueueDrain() {
-    if (!this.queueWorking) {
-      return Promise.resolve();
-    }
-
-    return new Promise((resolve, reject) => {
-      this.queueDrainResolver = resolve;
-      this.queueDrainRejecter = reject;
-    });
-  }
-
-  // Rendering status updates
-
-  setupRenderers() {
-    const display = new StickyTerminalDisplay();
-
-    this.summaryRenderer = display.getLineRenderer();
-
-    this.workerRenderers = [];
-    this.workerRendererUsage = new Set();
-    for (let i = 0; i < WORKER_COUNT; i++) {
-      const renderer = display.getLineRenderer();
-      this.workerRenderers.push(renderer);
-    }
-  }
-
-  printSummary() {
-    const { completed, errors } = this.summary;
-    const processed = completed + errors;
-    const found = this.foundResources.size;
-    this.summaryRenderer.write(`HeklaWebpackPlugin: processed ${processed}/${found} modules with ${errors} errors`);
-  }
-
-  assignRenderer() {
-    let idx = -1;
-    for (let i = 0; i < this.workerRenderers.length; i++) {
-      if (!this.workerRendererUsage.has(i)) {
-        idx = i;
-        break;
-      }
-    }
-    if (idx === -1) {
-      throw new Error('No free renderers');
-    }
-    this.workerRendererUsage.add(idx);
-    return this.workerRenderers[idx];
-  }
-
-  freeRenderer(renderer) {
-    let idx = this.workerRenderers.indexOf(renderer);
-    if (idx === -1) {
-      throw new Error('Unknown renderer');
-    }
-    this.workerRendererUsage.delete(idx);
-  }
-}
-
-function makeTask(moduleName, resource) {
-  return { moduleName, resource };
 }

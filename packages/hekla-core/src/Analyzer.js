@@ -59,7 +59,6 @@ module.exports = class Analyzer {
 
   async run() {
     this.startWorkers(DEFAULT_WORKER_COUNT);
-    this.sendStatusUpdate(analysisStarted(DEFAULT_WORKER_COUNT));
 
     const files = await getProjectFiles(this.config.rootPath, {
       ignorePatterns: this.config.exclude || []
@@ -72,7 +71,6 @@ module.exports = class Analyzer {
     }
 
     await this.waitForWorkers();
-    this.sendStatusUpdate(analysisSuccessful());
   }
 
   startWorkers(workerCount) {
@@ -80,10 +78,12 @@ module.exports = class Analyzer {
     this.workQueue.onStatusUpdate(message => this.sendStatusUpdate(message));
 
     this.workQueue.start(workerCount);
+    this.sendStatusUpdate(analysisStarted(DEFAULT_WORKER_COUNT));
   }
 
   async waitForWorkers() {
     await this.workQueue.waitForFinish();
+    this.sendStatusUpdate(analysisSuccessful());
   }
 
   createModule(resource) {
