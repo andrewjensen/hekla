@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "mocha src/**/*.spec.js --require ./test/test-helpers.js",
+    "test-ci": "npm run test",
     "tdd": "mocha src/**/*.spec.js --require ./test/test-helpers.js --reporter min --watch"
   },
   "author": "Andrew Jensen <andrewjensen90@gmail.com>",
