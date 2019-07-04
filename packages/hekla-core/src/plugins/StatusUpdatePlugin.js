@@ -2,6 +2,8 @@ const chalk = require('chalk');
 const StickyTerminalDisplay = require('sticky-terminal-display');
 const { TYPES } = require('../StatusMessage');
 
+const MAX_MODULE_NAME_LENGTH = 80;
+
 module.exports = class StatusUpdatePlugin {
   apply(analyzer) {
     analyzer.hooks.statusUpdate.tap('StatusUpdatePlugin', this.onStatusUpdate.bind(this));
@@ -35,7 +37,6 @@ module.exports = class StatusUpdatePlugin {
       errors: 0,
       found: 0
     };
-
     const display = new StickyTerminalDisplay();
 
     this.summaryRenderer = display.getLineRenderer();
@@ -48,12 +49,12 @@ module.exports = class StatusUpdatePlugin {
   }
 
   analysisSuccessful() {
-    console.log('Done.');
   }
 
   moduleQueued(moduleName, workerId) {
+    const truncatedModuleName = truncateStringRight(moduleName, MAX_MODULE_NAME_LENGTH);
     this.getWorkerRenderer(workerId)
-      .write(`  ${chalk.bold(`Worker ${workerId + 1}`)}: ${moduleName}`);
+      .write(`  ${chalk.bold(`Worker ${workerId + 1}`)}: ${truncatedModuleName}`);
 
     this.stats.found++;
     this.printSummary();
@@ -78,4 +79,13 @@ module.exports = class StatusUpdatePlugin {
   getWorkerRenderer(workerId) {
     return this.workerRenderers[workerId];
   }
+}
+
+function truncateStringRight(input, maxLength) {
+  if (input.length <= maxLength) {
+    return input;
+  }
+
+  const truncated = input.substring(input.length - maxLength + 3);
+  return `...${truncated}`;
 }
