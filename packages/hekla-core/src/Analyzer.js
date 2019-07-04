@@ -4,6 +4,11 @@ const {
 } = require('tapable');
 
 const Module = require('./Module');
+const WorkQueue = require('./WorkQueue');
+const {
+  analysisStarted,
+  analysisSuccessful,
+} = require('./StatusMessage');
 const {
   getProjectFiles
 } = require('./utils/fs-utils');
@@ -14,15 +19,19 @@ const {
   DOMWrapper
 } = require('./utils/ast-utils');
 
+const DEFAULT_WORKER_COUNT = 5;
+
 module.exports = class Analyzer {
   constructor() {
     this.config = null;
     this.fs = null;
     this.modules = [];
+    this.workQueue = null;
     this.hooks = {
       moduleRawSource: new SyncHook(['module', 'source']),
       moduleSyntaxTreeJS: new SyncHook(['module', 'ast']),
       moduleSyntaxTreeHTML: new SyncHook(['module', 'dom']),
+      statusUpdate: new SyncHook(['message']),
       reporter: new AsyncSeriesHook(['analyzer', 'analysis'])
     };
   }
@@ -49,19 +58,40 @@ module.exports = class Analyzer {
   }
 
   async run() {
+    this.startWorkers(DEFAULT_WORKER_COUNT);
+    this.sendStatusUpdate(analysisStarted(DEFAULT_WORKER_COUNT));
+
     const files = await getProjectFiles(this.config.rootPath, {
       ignorePatterns: this.config.exclude || []
     });
 
     for (let file of files) {
-      // TODO: use worker queue to parallelize this
       const fileModule = this.createModule(file);
-      await this.processModule(fileModule);
+      // await this.processModule(fileModule);
+      this.queueProcessModule(fileModule);
     }
+
+    await this.waitForWorkers();
+    this.sendStatusUpdate(analysisSuccessful());
+  }
+
+  startWorkers(workerCount) {
+    this.workQueue = new WorkQueue(this);
+    this.workQueue.onStatusUpdate(message => this.sendStatusUpdate(message));
+
+    this.workQueue.start(workerCount);
+  }
+
+  async waitForWorkers() {
+    await this.workQueue.waitForFinish();
   }
 
   createModule(resource) {
     return new Module(resource, this.config.rootPath);
+  }
+
+  queueProcessModule(module) {
+    this.workQueue.enqueue(module.getName(), module.getResource());
   }
 
   processModule(module) {
@@ -103,6 +133,10 @@ module.exports = class Analyzer {
 
   processModuleSource(module, source) {
     this.hooks.moduleRawSource.call(module, source);
+  }
+
+  sendStatusUpdate(message) {
+    this.hooks.statusUpdate.call(message);
   }
 
   processReporters(analysis) {
