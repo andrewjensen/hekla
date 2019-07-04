@@ -90,7 +90,7 @@ module.exports = class Analyzer {
   }
 
   queueProcessModule(module) {
-    this.workQueue.enqueue(module.getName(), module.getResource());
+    this.workQueue.enqueue(module);
   }
 
   processModule(module) {

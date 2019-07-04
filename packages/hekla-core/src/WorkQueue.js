@@ -31,13 +31,12 @@ module.exports = class WorkQueue {
     };
   }
 
-  // TODO: refactor to handle Modules
-  enqueue(moduleName, resource) {
+  enqueue(module) {
     if (!this.started) {
       throw new Error('WorkQueue has not been started yet');
     }
 
-    this.queue.push(makeTask(moduleName, resource))
+    this.queue.push(makeTask(module))
   }
 
   async waitForFinish() {
@@ -65,8 +64,7 @@ module.exports = class WorkQueue {
 
   async _queueWorker(task) {
     this.queueWorking = true;
-    const { moduleName, resource } = task;
-    let module = this.analyzer.createModule(resource);
+    const { module } = task;
 
     const workerId = this._claimWorkerId();
 
@@ -110,6 +108,6 @@ module.exports = class WorkQueue {
   }
 }
 
-function makeTask(moduleName, resource) {
-  return { moduleName, resource };
+function makeTask(module) {
+  return { module };
 }

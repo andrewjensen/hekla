@@ -2,11 +2,6 @@ const WorkQueue = require('./WorkQueue');
 const Module = require('./Module');
 
 class MockAnalyzer {
-  // TODO: remove from mock after changing the interface
-  createModule(resource) {
-    return new Module(resource, '/path/to/project');
-  }
-
   async processModule(module) {
     await sleep(10);
   }
@@ -28,8 +23,9 @@ describe('WorkQueue', () => {
     });
     queue.start(2);
 
-    queue.enqueue('truck.js', '/path/to/project/src/truck.js');
-    queue.enqueue('bus.js', '/path/to/project/src/bus.js');
+    const rootPath = '/path/to/project';
+    queue.enqueue(new Module('/path/to/project/src/truck.js', rootPath));
+    queue.enqueue(new Module('/path/to/project/src/bus.js', rootPath));
 
     await queue.waitForFinish();
 
