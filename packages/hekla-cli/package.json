@@ -13,7 +13,6 @@
   "license": "MIT",
   "dependencies": {
     "commander": "^2.9.0",
-    "hekla-core": "^0.3.0",
-    "hekla-viewer": "^0.3.0"
+    "hekla-core": "^0.3.0"
   }
 }
