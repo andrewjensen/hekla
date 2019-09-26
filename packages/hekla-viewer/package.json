@@ -1,6 +1,6 @@
 {
   "name": "hekla-viewer",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "main": "lib/server/index.js",
   "proxy": "http://localhost:3001",
   "scripts": {
@@ -14,7 +14,7 @@
   "dependencies": {
     "d3-request": "^1.0.2",
     "express": "^4.14.0",
-    "hekla-core": "^0.3.0",
+    "hekla-core": "^0.3.2",
     "material-ui": "^0.16.1",
     "react": "~15.3.2",
     "react-dom": "~15.3.2",
