@@ -1,6 +1,6 @@
 {
   "name": "hekla-cli",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -13,6 +13,6 @@
   "license": "MIT",
   "dependencies": {
     "commander": "^2.9.0",
-    "hekla-core": "^0.3.2"
+    "hekla-core": "^0.3.3"
   }
 }

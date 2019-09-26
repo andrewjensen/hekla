@@ -1,6 +1,6 @@
 {
   "name": "hekla-plugin-csv-reporter",
-  "version": "0.0.0",
+  "version": "0.3.3",
   "description": "Hekla Plugin to report analysis through CSV files",
   "main": "src/index.js",
   "scripts": {

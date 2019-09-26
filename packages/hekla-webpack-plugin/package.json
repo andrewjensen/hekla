@@ -1,6 +1,6 @@
 {
   "name": "hekla-webpack-plugin",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -10,7 +10,7 @@
   "author": "Andrew Jensen <andrewjensen90@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "hekla-core": "^0.3.2"
+    "hekla-core": "^0.3.3"
   },
   "devDependencies": {
     "jest": "^24.8.0",
