@@ -54,6 +54,7 @@ module.exports = async function analyze(cmd) {
   console.log('Saving...');
   const analysis = analyzer.getAnalysis();
   await saveAnalysis(analysis, analyzer.config);
+  await analyzer.processReporters(analysis);
 
   console.log('Done.');
 };
