@@ -1,0 +1,14 @@
+{
+  "name": "hekla-plugin-csv-reporter",
+  "version": "0.0.0",
+  "description": "Hekla Plugin to report analysis through CSV files",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andrew Jensen <andrewjensen90@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "csv-stringify-as-promised": "^2.0.7"
+  }
+}
