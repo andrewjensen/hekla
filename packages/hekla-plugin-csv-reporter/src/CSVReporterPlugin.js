@@ -53,6 +53,7 @@ module.exports = class CSVReporterPlugin {
 
     const outputCsv = await stringify(outputRows);
 
-    await writeFile(filePath, outputCsv);
+    console.log(`CSVReporterPlugin: writing to output file: ${this.destination}`);
+    await writeFile(this.destination, outputCsv);
   }
 };
