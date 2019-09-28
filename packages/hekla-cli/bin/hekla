@@ -1,18 +1,3 @@
-#!/usr/bin/env node --harmony
+#!/bin/sh
 
-var program = require('commander');
-var pkg = require('../package.json');
-
-var analyze = require('../src/commands/analyze');
-
-program
-  .version(pkg.version, '-v, --version');
-
-program
-  .command('analyze')
-  .description('Analyze a project')
-  .option('-s, --single <filename>', 'Analyze a single file')
-  .option('-c, --config <filename>', 'Config file location')
-  .action(analyze);
-
-program.parse(process.argv);
+node --harmony ./src/runner.js "$@"
