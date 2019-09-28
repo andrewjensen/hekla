@@ -41,7 +41,7 @@ describe('hekla-cli simple usage', () => {
     expect(analysisFileExists).toBe(true);
   });
 
-  xit('should apply plugins to modules', async () => {
+  it('should apply plugins to modules', async () => {
     await runAnalysis();
     const analysisFileExists = await fileExists(ANALYSIS_FILE_LOCATION);
 
@@ -50,6 +50,11 @@ describe('hekla-cli simple usage', () => {
     const contentsJson = await readFileContents(ANALYSIS_FILE_LOCATION);
     const contents = JSON.parse(contentsJson);
     expect(contents).toHaveProperty('modules');
+    expect(contents.modules).toHaveLength(4);
+
+    for (let module of contents.modules) {
+      expect(module.visited).toBe(true);
+    }
   });
 
   xit('should run reporter plugins', async () => {
