@@ -9,6 +9,7 @@ const exec = promisify(child_process.exec);
 
 const SHELL_FILE_LOCATION = path.resolve(__dirname, 'analyze.sh');
 const ANALYSIS_FILE_LOCATION = path.resolve(__dirname, 'dist', 'analysis.json');
+const REPORTED_FILE_LOCATION = path.resolve(__dirname, 'dist', 'report.txt');
 
 async function runAnalysis() {
   await exec(SHELL_FILE_LOCATION);
@@ -57,10 +58,13 @@ describe('hekla-cli simple usage', () => {
     }
   });
 
-  xit('should run reporter plugins', async () => {
-    // Run CLI
-    // Assert that an extra file was created by a reporter
+  it('should run reporter plugins', async () => {
+    await runAnalysis();
 
-    expect(true).toBe(false);
+    const reportedFileExists = await fileExists(REPORTED_FILE_LOCATION);
+    expect(reportedFileExists).toBe(true);
+
+    const contents = await readFileContents(REPORTED_FILE_LOCATION);
+    expect(contents).toEqual('I found 4 modules!');
   });
 });
