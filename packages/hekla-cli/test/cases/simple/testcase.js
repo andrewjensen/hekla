@@ -1,18 +1,20 @@
-const child_process = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');
 
+const analyze = require('../../../src/commands/analyze');
+
 const stat = promisify(fs.stat);
 const readFile = promisify(fs.readFile);
-const exec = promisify(child_process.exec);
 
-const SHELL_FILE_LOCATION = path.resolve(__dirname, 'analyze.sh');
+const CONFIG_FILE_LOCATION = path.resolve(__dirname, 'hekla.config.js');
 const ANALYSIS_FILE_LOCATION = path.resolve(__dirname, 'dist', 'analysis.json');
 const REPORTED_FILE_LOCATION = path.resolve(__dirname, 'dist', 'report.txt');
 
 async function runAnalysis() {
-  await exec(SHELL_FILE_LOCATION);
+  await analyze({
+    config: CONFIG_FILE_LOCATION
+  });
 }
 
 async function fileExists(filePath) {

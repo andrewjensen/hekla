@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "rm -rf ./test/cases/simple/dist/ && mkdir -p ./test/cases/simple/dist/ && jest",
     "test-ci": "npm run test"
   },
   "bin": {

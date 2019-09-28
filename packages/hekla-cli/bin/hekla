@@ -1,3 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env node --harmony
 
-node --harmony ./src/runner.js "$@"
+const run = require('../src/run');
+
+run(process.argv);
